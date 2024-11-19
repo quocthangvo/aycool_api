@@ -16,4 +16,8 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail, In
 
     boolean existsBySkuVersion(String skuVersion);
 
+    boolean existsByProductId(int productId);
+
+    List<ProductDetail> findAllByOrderByIdDesc();
+
 }

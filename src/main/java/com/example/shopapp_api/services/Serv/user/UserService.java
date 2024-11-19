@@ -1,14 +1,19 @@
 package com.example.shopapp_api.services.Serv.user;
 
+import com.example.shopapp_api.components.JwtTokenUtil;
 import com.example.shopapp_api.dtos.responses.user.UserResponse;
 import com.example.shopapp_api.entities.users.User;
+import com.example.shopapp_api.exceptions.DataNotFoundException;
 import com.example.shopapp_api.repositories.user.UserRepository;
 import com.example.shopapp_api.services.Impl.user.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 
 @Service
@@ -17,6 +22,7 @@ import org.springframework.stereotype.Service;
 public class UserService implements IUserService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+    private final JwtTokenUtil jwtTokenUtil;
 
     @Override
     public UserResponse getUserById(int id) {
@@ -55,6 +61,9 @@ public class UserService implements IUserService {
     public UserResponse lockUser(int id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với id: " + id));
+        if (!user.isActive()) {
+            throw new RuntimeException("Tài khoản đã vô hiệu hóa.");
+        }
         user.setActive(false);
         userRepository.save(user);
 
@@ -85,4 +94,21 @@ public class UserService implements IUserService {
         }
         userRepository.deleteById(id);
     }
+
+
+    @Override
+    public User getUserInfo(String token) throws Exception {
+        if (jwtTokenUtil.isTokenExpired(token)) {
+            throw new Exception("Token đã hết hạn");
+
+        }
+        String email = jwtTokenUtil.extractEmail(token);
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isPresent()) {
+            return user.get();
+        } else {
+            throw new Exception("Không tìm thấy người dùng");
+        }
+    }
+
 }

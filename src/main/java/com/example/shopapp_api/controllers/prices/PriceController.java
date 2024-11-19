@@ -67,7 +67,7 @@ public class PriceController {
     public ResponseEntity<ApiResponse<?>> getPriceByProductDetailId(@PathVariable("product_detail_id") int productDetailId
     ) {
         try {
-            Price priceList = priceService.getPriceByProductDetailId(productDetailId);
+            PriceResponse priceList = priceService.getPriceByProductDetailId(productDetailId);
             return ResponseEntity.ok(new ApiResponse<>("Thành công", priceList));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new ApiResponse<>("Lỗi: " + e.getMessage(), null));
@@ -108,4 +108,18 @@ public class PriceController {
             return ResponseEntity.badRequest().body(new ApiResponse<>("Lỗi: " + e.getMessage(), null));
         }
     }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<PriceResponse>>> getAllPrices() {
+        try {
+            List<PriceResponse> priceResponses = priceService.getAllPrices();
+
+            return ResponseEntity.ok(new ApiResponse<>("thành công", priceResponses));
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ApiResponse<>("Lỗi: " + e.getMessage(), null));
+        }
+
+    }
+
 }

@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import java.util.List;
+
 
 @Data
 @Builder
@@ -34,5 +36,13 @@ public class ProductDTO {
     @JsonProperty("material_id")
     private int materialId;
 
+    @JsonProperty("sizes")
+    private List<Integer> sizeId;
+
+    @JsonProperty("colors")
+    private List<Integer> colorId;
+
+//    @JsonProperty("version_sku")
+//    private String versionSku;
 //    private List<MultipartFile> files;
 }

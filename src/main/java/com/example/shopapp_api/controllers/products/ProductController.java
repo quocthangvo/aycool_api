@@ -4,14 +4,18 @@ import com.example.shopapp_api.dtos.requests.product.ProductDTO;
 import com.example.shopapp_api.dtos.requests.product.ProductImageDTO;
 import com.example.shopapp_api.dtos.responses.apiResponse.ApiResponse;
 import com.example.shopapp_api.dtos.responses.apiResponse.MessageResponse;
+import com.example.shopapp_api.dtos.responses.product.ProductImageResponse;
 import com.example.shopapp_api.dtos.responses.product.ProductListResponse;
 import com.example.shopapp_api.dtos.responses.product.ProductResponse;
+import com.example.shopapp_api.dtos.responses.product.ProductSelectResponse;
 import com.example.shopapp_api.entities.products.Product;
 import com.example.shopapp_api.entities.products.ProductImage;
 import com.example.shopapp_api.exceptions.DataNotFoundException;
 import com.example.shopapp_api.services.Impl.product.IProductService;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -39,7 +43,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("${api.prefix}/products")
 @RequiredArgsConstructor
-
+@CrossOrigin(origins = "http://localhost:4200")
 public class ProductController {
     private final IProductService productService;
 
@@ -96,7 +100,7 @@ public class ProductController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getProductId(@PathVariable("id") int productId) {
         try {
-            Product existingProduct = productService.getProductById(productId);
+            ProductResponse existingProduct = productService.getProductById(productId);
             return ResponseEntity.ok(new ApiResponse<>("Thành công", existingProduct));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new ApiResponse<>("Lỗi: " + e.getMessage(), null));
@@ -105,6 +109,7 @@ public class ProductController {
 
     }
 
+    @Transactional
     @DeleteMapping("/{id}")
     public ResponseEntity<MessageResponse> deleteProduct(@PathVariable int id) {
         try {
@@ -117,6 +122,7 @@ public class ProductController {
         }
     }
 
+    @Transactional
     @PutMapping("/update/{id}")
     public ResponseEntity<?> updateProduct(
             @PathVariable int id,
@@ -136,7 +142,8 @@ public class ProductController {
             @PathVariable("id") int productId,
             @RequestParam("files") List<MultipartFile> files) {
         try {
-            Product existingProduct = productService.getProductById(productId);
+
+            ProductResponse existingProduct = productService.getProductById(productId);
 
             files = files == null ? new ArrayList<MultipartFile>() : files;
 
@@ -204,6 +211,91 @@ public class ProductController {
     private boolean isImageFile(MultipartFile file) {
         String contentType = file.getContentType();
         return contentType != null && contentType.startsWith("image/");
+    }
+
+
+    @GetMapping("/images/{id}")
+    public ResponseEntity<?> getImageByProductId(@PathVariable("id") int productId) {
+        try {
+            List<ProductImageResponse> existingProduct = productService.getImageByProductId(productId);
+            return ResponseEntity.ok(new ApiResponse<>("Thành công", existingProduct));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ApiResponse<>("Lỗi: " + e.getMessage(), null));
+
+        }
+    }
+
+//    @GetMapping("/images/{imageName}")
+//    public ResponseEntity<?> viewImage(@PathVariable String imageName) {
+//        try {
+//            Path imagePath = Paths.get("uploads/" + imageName);
+//            UrlResource resource = new UrlResource(imagePath.toUri());
+//            if (resource.exists()) {
+////                // Kiểm tra định dạng của file (ví dụ PNG hoặc JPG)
+////                MediaType mediaType = MediaType.IMAGE_PNG; // Mặc định là PNG
+////                String contentType = Files.probeContentType(imagePath);
+////                if (contentType != null && contentType.startsWith("image")) {
+////                    mediaType = MediaType.parseMediaType(contentType);
+////                }
+//
+//                // Trả về file với mediaType tương ứng
+//                return ResponseEntity.ok()
+//                        .contentType(MediaType.IMAGE_JPEG)  // Đảm bảo trả về đúng loại media
+//                        .body(resource);
+//            } else {
+////                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+////                        .body(new ApiResponse<>("Ảnh không tìm thấy", null));
+//                return ResponseEntity.notFound().build();
+//            }
+//        } catch (Exception e) {
+////            return ResponseEntity.badRequest().body(new ApiResponse<>("Lỗi: " + e.getMessage(), null));
+//            return ResponseEntity.notFound().build();
+//        }
+//    }
+
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<List<ProductSelectResponse>>> getAllProducts() {
+        List<ProductSelectResponse> products = productService.getAllProductsNotPage();
+        return ResponseEntity.ok(new ApiResponse<>("Thành công", products));
+    }
+
+
+    @GetMapping("/images/{imageName}")
+    public ResponseEntity<?> getImage(@PathVariable String imageName) {
+        try {
+            // Đường dẫn tới file hình ảnh trong thư mục uploads
+            Path duongDanHinhAnh = Paths.get("uploads").resolve(imageName).normalize();
+
+            // Kiểm tra xem file có tồn tại và có thể đọc được không
+            if (!Files.exists(duongDanHinhAnh) || !Files.isReadable(duongDanHinhAnh)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Không tìm thấy hình ảnh hoặc không thể truy cập.");
+            }
+
+            // Lấy loại MIME (loại nội dung) của file
+            String loaiNoiDung = Files.probeContentType(duongDanHinhAnh);
+            if (loaiNoiDung == null || !loaiNoiDung.startsWith("image")) {
+                return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                        .body("File không phải là loại hình ảnh hợp lệ.");
+            }
+
+            // Tạo resource từ file
+            UrlResource resource = new UrlResource(duongDanHinhAnh.toUri());
+
+            // Kiểm tra lần cuối nếu resource tồn tại
+            if (resource.exists()) {
+                return ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(loaiNoiDung)) // Đặt đúng loại MIME
+                        .body(resource);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Không tìm thấy hình ảnh.");
+            }
+        } catch (Exception e) {
+            // Xử lý lỗi và trả về thông báo lỗi
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Lỗi khi tải hình ảnh: " + e.getMessage());
+        }
     }
 
 }

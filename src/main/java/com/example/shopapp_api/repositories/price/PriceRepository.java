@@ -5,9 +5,17 @@ import com.example.shopapp_api.entities.products.ProductDetail;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface PriceRepository extends JpaRepository<Price, Integer> {
     List<Price> findByProductDetailId(int productDetailId);
 
-    Price findTopByProductDetailIdOrderByCreatedAtDesc(int productDetailId);
+//    Price findTopByProductDetailIdOrderByCreatedAtDesc(int productDetailId);
+
+    //giá tiền theo id
+    Optional<Price> findTopByProductDetailIdOrderByCreatedAtDesc(int productDetailId);
+
+    List<Price> findAllByOrderByCreatedAtDesc();
+
+    Price findFirstByProductDetailIdAndEndDateIsNull(int productDetailId);
 }

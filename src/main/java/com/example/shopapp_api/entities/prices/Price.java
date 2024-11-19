@@ -2,6 +2,7 @@ package com.example.shopapp_api.entities.prices;
 
 import com.example.shopapp_api.entities.BaseEntity;
 import com.example.shopapp_api.entities.products.ProductDetail;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,7 +23,7 @@ public class Price extends BaseEntity {
     @Column(name = "selling_price", nullable = false)
     private Float sellingPrice;
 
-    @Column(name = "promotion_price", nullable = false)
+    @Column(name = "promotion_price")
     private Float promotionPrice;
 
     @Column(name = "start_date")
@@ -33,5 +34,6 @@ public class Price extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "product_detail_id")
+    @JsonBackReference
     private ProductDetail productDetail;
 }

@@ -2,32 +2,51 @@ package com.example.shopapp_api.services.Serv.product;
 
 import com.example.shopapp_api.dtos.requests.product.ProductDTO;
 import com.example.shopapp_api.dtos.requests.product.ProductImageDTO;
+import com.example.shopapp_api.dtos.responses.product.ProductImageResponse;
 import com.example.shopapp_api.dtos.responses.product.ProductResponse;
+import com.example.shopapp_api.dtos.responses.product.ProductSelectResponse;
+import com.example.shopapp_api.entities.attributes.Color;
 import com.example.shopapp_api.entities.attributes.Material;
+import com.example.shopapp_api.entities.attributes.Size;
 import com.example.shopapp_api.entities.categories.SubCategory;
 import com.example.shopapp_api.entities.products.Product;
+import com.example.shopapp_api.entities.products.ProductDetail;
 import com.example.shopapp_api.entities.products.ProductImage;
 import com.example.shopapp_api.exceptions.DataNotFoundException;
 import com.example.shopapp_api.exceptions.InvalidParamException;
+import com.example.shopapp_api.repositories.attribute.ColorRepository;
 import com.example.shopapp_api.repositories.attribute.MaterialRepository;
+import com.example.shopapp_api.repositories.attribute.SizeRepository;
+import com.example.shopapp_api.repositories.product.ProductDetailRepository;
 import com.example.shopapp_api.repositories.product.ProductImageRepository;
 import com.example.shopapp_api.repositories.product.ProductRepository;
 import com.example.shopapp_api.repositories.category.SubCategoryRepository;
 import com.example.shopapp_api.services.Impl.product.IProductService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@RestController
+@CrossOrigin(origins = "http://localhost:4200")
 public class ProductService implements IProductService {
     private final ProductRepository productRepository;
     private final SubCategoryRepository subCategoryRepository;
     private final MaterialRepository materialRepository;
     private final ProductImageRepository productImageRepository;
+    private final ColorRepository colorRepository;
+    private final SizeRepository sizeRepository;
+    private final ProductDetailRepository productDetailRepository;
+
 
     //final thì @RequiredArgsConstructor thì repository tham chiếu lần 1 và chỉ 1 lần
 
@@ -52,7 +71,6 @@ public class ProductService implements IProductService {
             throw new RuntimeException("Mã SKU đã tồn tại, vui lòng nhập mã khác.");
         }
 
-
         Product newProduct = Product.builder()
                 .name(productDTO.getName())
                 .sku(productDTO.getSku())
@@ -61,13 +79,42 @@ public class ProductService implements IProductService {
                 .material(existingMaterial)
                 .build();
 
-        return productRepository.save(newProduct);
+        newProduct = productRepository.save(newProduct);
+
+        String baseSku = newProduct.getSku();
+        int skuCounter = 1;
+
+        //duyệt qua vòng lập để truyền vào list tạo size color
+        for (Integer color : productDTO.getColorId()) {
+            for (Integer size : productDTO.getSizeId()) {
+                Color existingColor = colorRepository.findById(color)
+                        .orElseThrow(() -> new DataNotFoundException("Không tìm thấy màu" + productDTO.getColorId()));
+                Size existingSize = sizeRepository.findById(size)
+                        .orElseThrow(() -> new DataNotFoundException("Không tìm thấy kích thước" + productDTO.getSizeId()));
+
+                String skuVersion = baseSku + String.format("%03d", skuCounter++);
+
+                String skuName = newProduct.getName() + "-" + existingColor.getName() + "-" + existingSize.getName();
+
+                ProductDetail newProductDetail =
+                        ProductDetail.builder()
+                                .product(newProduct)
+                                .color(existingColor)
+                                .size(existingSize)
+                                .skuVersion(skuVersion)
+                                .skuName(skuName)
+                                .build();
+                productDetailRepository.save(newProductDetail);
+            }
+        }
+        return newProduct;
     }
 
     @Override
-    public Product getProductById(int id) throws DataNotFoundException {
-        return productRepository.findById(id)
+    public ProductResponse getProductById(int id) throws DataNotFoundException {
+        Product product = productRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException("Không tìm thấy sản phẩm với id: " + id));
+        return ProductResponse.formProduct(product);
     }
 
     @Override
@@ -76,20 +123,23 @@ public class ProductService implements IProductService {
         // tham chiếu đến phương thức response :: thay vì dùng (product -> )
     }
 
+    @Transactional
     @Override
     public void deleteProduct(int id) throws DataNotFoundException {
-        Optional<Product> optionalProduct = productRepository.findById(id);
-
-        if (optionalProduct.isEmpty()) {// Sử dụng isEmpty() thay cho !isPresent()
-            throw new DataNotFoundException(String.format("Không tìm thấy sản phẩm với id = %d", id));
+        Product existingProduct = productRepository.findById(id)
+                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy sản phẩm với id: " + id));
+        if (productDetailRepository.existsByProductId(id)) {
+            throw new DataNotFoundException("Không thể xóa sản phẩm vì còn tồn tại chi tiết sản phẩm liên quan.");
         }
 
-        productRepository.delete(optionalProduct.get());
+        productRepository.delete(existingProduct);
     }
 
     @Override
+    @Transactional
     public Product updateProduct(int id, ProductDTO productDTO) throws DataNotFoundException {
-        Product existingProduct = getProductById(id);
+        Product existingProduct = productRepository.findById(id)
+                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy sản phẩm với id: " + id));
         if (existingProduct != null) {
             //copy các thuộc tình từ DTO ->Product
             //có thể dùng modelMapper
@@ -158,4 +208,37 @@ public class ProductService implements IProductService {
         }
         return productImageRepository.save(newProductImage);
     }
+
+
+    @Override
+    public List<ProductImageResponse> getImageByProductId(int id) throws DataNotFoundException {
+//        Product product = productRepository.findById(id)
+//                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy sản phẩm với id: " + id));
+        // Kiểm tra nếu productId tồn tại trong cơ sở dữ liệu
+        if (!productRepository.existsById(id)) {
+            throw new DataNotFoundException("Không tìm thấy sản phẩm với id: " + id);
+        }
+        List<ProductImage> images = productImageRepository.findByProductId(id);
+        if (images.isEmpty()) {
+            throw new DataNotFoundException("Không tìm thấy ảnh nào cho sản phẩm với id: " + id);
+        }
+
+        return images.stream()
+                .map(ProductImageResponse::formProductImage) // Gọi phương thức chuyển đổi
+                .collect(Collectors.toList());
+
+    }
+
+    @Override
+    public List<ProductSelectResponse> getAllProductsNotPage() {
+        // Fetch all products from the repository
+        List<Product> products = productRepository.findAll();
+
+        // Convert each product to a ProductResponse
+        return products.stream()
+                .sorted((product1, product2) -> product2.getCreatedAt().compareTo(product1.getCreatedAt()))
+                .map(ProductSelectResponse::formProduct)
+                .collect(Collectors.toList());
+    }
+
 }

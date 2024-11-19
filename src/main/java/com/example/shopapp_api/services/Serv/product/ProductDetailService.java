@@ -2,6 +2,8 @@ package com.example.shopapp_api.services.Serv.product;
 
 import com.example.shopapp_api.dtos.requests.product.ProductDetailDTO;
 import com.example.shopapp_api.dtos.requests.product.UpdateProductDetailDTO;
+import com.example.shopapp_api.dtos.responses.product.ProductDetailResponse;
+import com.example.shopapp_api.dtos.responses.product.ProductResponse;
 import com.example.shopapp_api.entities.attributes.Color;
 import com.example.shopapp_api.entities.attributes.Size;
 import com.example.shopapp_api.entities.products.Product;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -88,15 +91,18 @@ public class ProductDetailService implements IProductDetailService {
     }
 
     @Override
-    public ProductDetail getProductDetailById(int id) throws DataNotFoundException {
-        return productDetailRepository.findById(id)
+    public ProductDetailResponse getProductDetailById(int id) throws DataNotFoundException {
+        ProductDetail productDetail = productDetailRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException("Không tìm thấy sản phẩm với id: " + id));
-
+        return ProductDetailResponse.formProductDetail(productDetail);
     }
 
     @Override
-    public List<ProductDetail> getAllProductDetailsByProductId(int productId) {
-        return productDetailRepository.findByProductId(productId);
+    public List<ProductDetailResponse> getAllProductDetailsByProductId(int productId) {
+        List<ProductDetail> productDetails = productDetailRepository.findByProductId(productId);
+        return productDetails.stream()
+                .map(ProductDetailResponse::formProductDetail)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -107,8 +113,8 @@ public class ProductDetailService implements IProductDetailService {
 
     @Override
     public ProductDetail updateProductDetail(int id, UpdateProductDetailDTO updateProductDetailDTO) throws DataNotFoundException {
-        ProductDetail productDetail = getProductDetailById(id);
-
+        ProductDetail productDetail = productDetailRepository.findById(id)
+                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy sản phẩm với id: " + id));
         Color existingColor = colorRepository.findById(updateProductDetailDTO.getColorId())
                 .orElseThrow(() -> new DataNotFoundException("Không tìm thấy màu sắc với id: " + updateProductDetailDTO.getColorId()));
         Size existingSize = sizeRepository.findById(updateProductDetailDTO.getSizeId())
@@ -122,4 +128,13 @@ public class ProductDetailService implements IProductDetailService {
         return productDetailRepository.save(productDetail);
 
     }
+
+    @Override
+    public List<ProductDetailResponse> getAllProductDetails() {
+        List<ProductDetail> productDetails = productDetailRepository.findAllByOrderByIdDesc();
+        return productDetails.stream()
+                .map(ProductDetailResponse::formProductDetail)
+                .collect(Collectors.toList());
+    }
+
 }

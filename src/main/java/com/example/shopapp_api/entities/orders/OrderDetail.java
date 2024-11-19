@@ -2,6 +2,8 @@ package com.example.shopapp_api.entities.orders;
 
 import com.example.shopapp_api.entities.products.Product;
 import com.example.shopapp_api.entities.products.ProductDetail;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,6 +22,7 @@ public class OrderDetail {
 
     @ManyToOne
     @JoinColumn(name = "order_id")
+    @JsonBackReference
     private Order order;
 
     @ManyToOne
@@ -32,6 +35,6 @@ public class OrderDetail {
     @Column(name = "total_money", nullable = false)
     private Float totalMoney;
 
-    @Column(name = "price", nullable = false)
-    private Float price;
+//    @Column(name = "price", nullable = false)
+//    private Float price;
 }

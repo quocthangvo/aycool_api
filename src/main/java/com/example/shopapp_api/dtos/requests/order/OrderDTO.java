@@ -10,6 +10,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -28,6 +29,8 @@ public class OrderDTO {
     @JsonProperty("address_id")
     private int addressId;
 
+    @JsonProperty("order_code")
+    private String orderCode;
 
     private String note;
 
@@ -47,8 +50,11 @@ public class OrderDTO {
 
     @JsonProperty("payment_method")
     private String paymentMethod;
-    
+
     private OrderStatus status;
 
     private boolean active;
+
+    @JsonProperty("order_details")
+    private List<OrderDetailDTO> orderDetails;
 }

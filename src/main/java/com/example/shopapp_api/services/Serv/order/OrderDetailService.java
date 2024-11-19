@@ -46,7 +46,7 @@ public class OrderDetailService implements IOrderDetailService {
                     .order(order)
                     .productDetail(productDetail)
                     .quantity(orderDetailDTO.getQuantity())
-                    .price(orderDetailDTO.getPrice())
+//                    .price(orderDetailDTO.getPrice())
                     .totalMoney(orderDetailDTO.getTotalMoney())
                     .build();
             return orderDetailRepository.save(orderDetail);
@@ -83,7 +83,7 @@ public class OrderDetailService implements IOrderDetailService {
 //        ProductDetail existingProductDetail = productDetailRepository.findById(orderDetailDTO.getProductDetailId())
 //                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy sản phẩm có id " + orderDetailDTO.getProductDetailId()));
 
-        existingOrderDetail.setPrice(updateOrderDetailDTO.getPrice());
+//        existingOrderDetail.setPrice(updateOrderDetailDTO.getPrice());
         existingOrderDetail.setQuantity(updateOrderDetailDTO.getQuantity());
         existingOrderDetail.setTotalMoney(updateOrderDetailDTO.getTotalMoney());
 

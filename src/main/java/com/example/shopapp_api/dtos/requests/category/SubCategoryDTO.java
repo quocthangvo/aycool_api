@@ -17,7 +17,9 @@ public class SubCategoryDTO {
     @Size(min = 3, max = 100, message = "Name must be between 3 and 100 characters")
     private String name;
 
-    @NotNull(message = "Category is required")
+  
     @JsonProperty("category_id")
-    private int categoryId;
+    private Integer categoryId;
+
+//    Interger có thể biểu thị trạng thái null, int thì k
 }

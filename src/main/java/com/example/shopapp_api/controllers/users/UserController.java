@@ -4,10 +4,12 @@ import com.example.shopapp_api.dtos.responses.apiResponse.ApiResponse;
 import com.example.shopapp_api.dtos.responses.apiResponse.MessageResponse;
 import com.example.shopapp_api.dtos.responses.user.UserListResponse;
 import com.example.shopapp_api.dtos.responses.user.UserResponse;
+import com.example.shopapp_api.entities.users.User;
 import com.example.shopapp_api.services.Serv.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -75,6 +77,18 @@ public class UserController {
             return ResponseEntity.ok(new MessageResponse("Tài khoản đã được xóa thành công"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+        }
+    }
+
+    @PostMapping("/info")
+    public ResponseEntity<?> getUserInfo(@RequestHeader("Authorization") String token) {
+        try {
+            String extractedToken = token.substring(7);
+            User user = userService.getUserInfo(extractedToken);
+            return ResponseEntity.ok(UserResponse.formUser(user));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+
         }
     }
 }

@@ -5,6 +5,7 @@ import com.example.shopapp_api.dtos.requests.product.ProductDetailDTO;
 import com.example.shopapp_api.dtos.requests.product.UpdateProductDetailDTO;
 import com.example.shopapp_api.dtos.responses.apiResponse.ApiResponse;
 import com.example.shopapp_api.dtos.responses.apiResponse.MessageResponse;
+import com.example.shopapp_api.dtos.responses.product.ProductDetailResponse;
 import com.example.shopapp_api.dtos.responses.product.ProductListResponse;
 import com.example.shopapp_api.dtos.responses.product.ProductResponse;
 import com.example.shopapp_api.entities.products.Product;
@@ -57,7 +58,7 @@ public class ProductDetailController {
     public ResponseEntity<ApiResponse<List<?>>> getALlProductDetails(@PathVariable("product_id") int productId
     ) {
         try {
-            List<ProductDetail> productDetail = productDetailService.getAllProductDetailsByProductId(productId);
+            List<ProductDetailResponse> productDetail = productDetailService.getAllProductDetailsByProductId(productId);
             return ResponseEntity.ok(new ApiResponse<>("Thành công", productDetail));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new ApiResponse<>("Lỗi: " + e.getMessage(), null));
@@ -68,7 +69,7 @@ public class ProductDetailController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getProductDetailId(@PathVariable("id") int productDetailId) {
         try {
-            ProductDetail existingProductDetail = productDetailService.getProductDetailById(productDetailId);
+            ProductDetailResponse existingProductDetail = productDetailService.getProductDetailById(productDetailId);
             return ResponseEntity.ok(new ApiResponse<>("Thành công", existingProductDetail));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new ApiResponse<>("Lỗi: " + e.getMessage(), null));
@@ -98,4 +99,17 @@ public class ProductDetailController {
             return ResponseEntity.badRequest().body(new ApiResponse<>("Lỗi: " + e.getMessage(), null));
         }
     }
+
+
+    @GetMapping("")
+    public ResponseEntity<ApiResponse<List<?>>> getAllProductDetails() {
+        try {
+            List<ProductDetailResponse> productDetail = productDetailService.getAllProductDetails();
+            return ResponseEntity.ok(new ApiResponse<>("Thành công", productDetail));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ApiResponse<>("Lỗi: " + e.getMessage(), null));
+        }
+
+    }
+
 }

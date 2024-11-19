@@ -63,12 +63,17 @@ public class SubCategoryService implements ISubCategoryService {
     public SubCategory updateSubCategory(int subCategoryId, SubCategoryDTO subCategoryDTO) throws DataNotFoundException {
         SubCategory existingSubCategory = getSubCategoryById(subCategoryId);
         if (existingSubCategory != null) {
-            // Kiểm tra xem danh mục cha có tồn tại không
-            Category existingCategory = categoryRepository.findById(subCategoryDTO.getCategoryId())
-                    .orElseThrow(() -> new DataNotFoundException("Không tìm thấy danh mục với id: " +
-                            subCategoryDTO.getCategoryId())); // kiêm tra category id có tồn tại id k
             existingSubCategory.setName(subCategoryDTO.getName());
-            existingSubCategory.setCategory(existingCategory);
+            // Kiểm tra categoryId trong DTO, nếu có giá trị thì cập nhật danh mục cha
+            if (subCategoryDTO.getCategoryId() != null) {
+                // Tìm danh mục cha mới nếu categoryId không null
+                Category existingCategory = categoryRepository.findById(subCategoryDTO.getCategoryId())
+                        .orElseThrow(() -> new DataNotFoundException("Không tìm thấy danh mục với id: " +
+                                subCategoryDTO.getCategoryId())); // Kiểm tra category id có tồn tại không
+
+                existingSubCategory.setCategory(existingCategory); // Cập nhật danh mục nếu có
+            }
+//            existingSubCategory.setCategory(existingCategory);
             return subCategoryRepository.save(existingSubCategory);//trả về và lưu update db
 
         }

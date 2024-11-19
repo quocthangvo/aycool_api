@@ -3,10 +3,13 @@ package com.example.shopapp_api.entities.orders;
 import com.example.shopapp_api.dtos.responses.BaseResponse;
 import com.example.shopapp_api.entities.BaseEntity;
 import com.example.shopapp_api.entities.users.User;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.text.DecimalFormat;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Table(name = "orders")
 @Entity
@@ -28,6 +31,8 @@ public class Order extends BaseEntity {
     @JoinColumn(name = "address_id")
     private Address address;
 
+    @JoinColumn(name = "order_code")
+    private String orderCode;
 
     @Column(name = "note", length = 250)
     private String note;
@@ -53,4 +58,8 @@ public class Order extends BaseEntity {
 
     @Column(name = "active")
     private Boolean active;
+
+    @OneToMany(mappedBy = "order")
+    @JsonManagedReference
+    private List<OrderDetail> orderDetails;
 }

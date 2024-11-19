@@ -1,8 +1,11 @@
 package com.example.shopapp_api.dtos.responses.order;
 
 import com.example.shopapp_api.entities.orders.OrderDetail;
+import com.example.shopapp_api.entities.prices.Price;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -25,8 +28,8 @@ public class OrderDetailResponse {
     @JsonProperty("total_money")
     private Float totalMoney;
 
-    @JsonProperty("price")
-    private Float price;
+//    @JsonProperty("price")
+//    private Float price;
 
     @JsonProperty("product_name")
     private String productName;  // Thêm tên sản phẩm
@@ -37,17 +40,21 @@ public class OrderDetailResponse {
     @JsonProperty("color")
     private String colorName;    // Thêm màu sắc
 
+    private List<Price> price;
+
     public static OrderDetailResponse formOrderDetail(OrderDetail orderDetail) {
         OrderDetailResponse orderDetailResponse = OrderDetailResponse
                 .builder()
                 .id(orderDetail.getId())
                 .orderId(orderDetail.getOrder().getId())
                 .productDetailId(orderDetail.getProductDetail().getId())
-                .price(orderDetail.getPrice())
+//                .price(orderDetail.getPrice())
+                .quantity(orderDetail.getQuantity())
                 .totalMoney(orderDetail.getTotalMoney())
                 .productName(orderDetail.getProductDetail().getProduct().getName())
                 .sizeName(orderDetail.getProductDetail().getSize().getName())
                 .colorName(orderDetail.getProductDetail().getColor().getName())
+                .price(orderDetail.getProductDetail().getPrices())
                 .build();
         return orderDetailResponse;
     }

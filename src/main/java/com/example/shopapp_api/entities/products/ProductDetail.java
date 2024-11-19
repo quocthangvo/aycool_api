@@ -2,6 +2,9 @@ package com.example.shopapp_api.entities.products;
 
 import com.example.shopapp_api.entities.attributes.Color;
 import com.example.shopapp_api.entities.attributes.Size;
+import com.example.shopapp_api.entities.prices.Price;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,6 +23,9 @@ public class ProductDetail {
     @GeneratedValue(strategy = GenerationType.IDENTITY)//id tự dong759 tăng
     private int id;
 
+    @JoinColumn(name = "sku_name")
+    private String skuName;
+
     @JoinColumn(name = "sku_version")
     private String skuVersion;
 
@@ -28,6 +34,7 @@ public class ProductDetail {
 
     @ManyToOne
     @JoinColumn(name = "product_id")
+    @JsonBackReference // bỏ qua id tránh lập lại
     private Product product;
 
     @ManyToOne
@@ -38,5 +45,7 @@ public class ProductDetail {
     @JoinColumn(name = "size_id")
     private Size size;
 
-
+    @OneToMany(mappedBy = "productDetail")
+    @JsonManagedReference
+    private List<Price> prices;
 }

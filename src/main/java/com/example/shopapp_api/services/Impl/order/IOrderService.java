@@ -4,6 +4,8 @@ import com.example.shopapp_api.dtos.requests.order.OrderDTO;
 import com.example.shopapp_api.dtos.requests.order.OrderStatusDTO;
 import com.example.shopapp_api.dtos.responses.order.OrderResponse;
 import com.example.shopapp_api.exceptions.DataNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 
@@ -17,4 +19,6 @@ public interface IOrderService {
     void deleteOrder(int id);
 
     OrderResponse updateOrder(int orderId, OrderStatusDTO orderStatusDTO) throws DataNotFoundException;
+
+    Page<OrderResponse> getAllOrders(PageRequest pageRequest);
 }

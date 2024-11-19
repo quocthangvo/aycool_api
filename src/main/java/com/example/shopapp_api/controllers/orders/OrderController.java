@@ -4,10 +4,16 @@ import com.example.shopapp_api.dtos.requests.order.OrderDTO;
 import com.example.shopapp_api.dtos.requests.order.OrderStatusDTO;
 import com.example.shopapp_api.dtos.responses.apiResponse.ApiResponse;
 import com.example.shopapp_api.dtos.responses.apiResponse.MessageResponse;
+import com.example.shopapp_api.dtos.responses.order.OrderListResponse;
 import com.example.shopapp_api.dtos.responses.order.OrderResponse;
+import com.example.shopapp_api.dtos.responses.product.ProductListResponse;
+import com.example.shopapp_api.dtos.responses.product.ProductResponse;
 import com.example.shopapp_api.services.Impl.order.IOrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -40,6 +46,33 @@ public class OrderController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new ApiResponse<>("Lỗi: " + e.getMessage(), null));
 
+        }
+    }
+
+
+    @GetMapping("")
+    public ResponseEntity<?> getALlOrders(
+            //truyền productListResponse thì k cần List<>
+            @RequestParam("page") int page,
+            @RequestParam("limit") int limit
+    ) {
+        try {
+            //tạo PagesRequest từ thông tin page và limit
+            PageRequest pageRequest = PageRequest.of(page, limit, Sort.by("createdAt").descending());
+
+            Page<OrderResponse> orderPage = orderService.getAllOrders(pageRequest);
+            //tông số trang
+            int totalPages = orderPage.getTotalPages();//lấy ra tổng số trang
+            List<OrderResponse> orderList = orderPage.getContent();//từ productPage lấy ra ds các product getContent
+
+            OrderListResponse orderListResponse = (OrderListResponse
+                    .builder()
+                    .orderResponseList(orderList)
+                    .totalPages(totalPages)
+                    .build());
+            return ResponseEntity.ok(new ApiResponse<>("Thành công", orderListResponse));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ApiResponse<>("Lỗi: " + e.getMessage(), null));
         }
 
     }

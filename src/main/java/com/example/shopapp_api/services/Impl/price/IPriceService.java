@@ -14,9 +14,13 @@ public interface IPriceService {
 
     List<Price> getAllPriceByProductDetailId(int productDetailId);
 
-    Price getPriceByProductDetailId(int productDetailId);
+    PriceResponse getPriceByProductDetailId(int productDetailId);
 
     void deletePrice(int id) throws DataNotFoundException;
 
     PriceResponse updatePrice(int priceId, PriceDTO priceDTO) throws DataNotFoundException;
+
+    List<PriceResponse> getAllPrices();
+
+//    List<Price> createPrice(PriceDTO priceDTO) throws DataNotFoundException;
 }

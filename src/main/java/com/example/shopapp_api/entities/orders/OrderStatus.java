@@ -2,7 +2,33 @@ package com.example.shopapp_api.entities.orders;
 
 
 public enum OrderStatus {
-    //    PENDING("Chờ xử lý"),
+
+
+    PENDING,
+    PROCESSING,
+    SHIPPED,
+    DELIVERED,
+    CANCELLED;
+
+    public String getStatusDisplayName() {
+        switch (this) {
+            case PENDING:
+                return "Chờ xử lý";
+            case PROCESSING:
+                return "Đang xử lý";
+            case SHIPPED:
+                return "Đang giao hàng";
+            case DELIVERED:
+                return "Đã giao hàng";
+            case CANCELLED:
+                return "Đã huỷ";
+            default:
+                return "Không xác định";
+        }
+    }
+}
+
+//    PENDING("Chờ xử lý"),
 //    PROCESSING("Đã xác nhận"),
 //    SHIPPED("Đang giao hàng"),
 //    DELIVERED("Đã giao hàng"),
@@ -18,11 +44,3 @@ public enum OrderStatus {
 //    public String getDisplayName() {
 //        return displayName;
 //    }
-
-    PENDING,
-    PROCESSING,
-    SHIPPED,
-    DELIVERED,
-    CANCELLED;
-}
-

@@ -2,6 +2,7 @@ package com.example.shopapp_api.services.Serv.user;
 
 import com.example.shopapp_api.components.JwtTokenUtil;
 import com.example.shopapp_api.dtos.requests.auth.UserRegisterDTO;
+import com.example.shopapp_api.dtos.responses.user.UserResponse;
 import com.example.shopapp_api.entities.users.Role;
 import com.example.shopapp_api.entities.users.User;
 import com.example.shopapp_api.exceptions.DataNotFoundException;
@@ -17,6 +18,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -66,7 +69,7 @@ public class AuthService implements IAuthService {
     }
 
     @Override
-    public String login(String email, String password) throws Exception {
+    public Map<String, Object> login(String email, String password) throws Exception {
         Optional<User> optionalUser = userRepository.findByEmail(email);
         if (optionalUser.isEmpty()) {
             throw new DataNotFoundException("Email hoặc mật khẩu không hợp lệ");
@@ -91,7 +94,16 @@ public class AuthService implements IAuthService {
         );
         //authenticate with Java Spring boot
         authenticationManager.authenticate(authenticationToken);
-        return jwtTokenUtil.generateToken(optionalUser.get());
+//        return jwtTokenUtil.generateToken(optionalUser.get());
 
+        // Tạo token JWT
+        String token = jwtTokenUtil.generateToken(existingUser);
+
+        // Chuẩn bị map trả về
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", token);
+        response.put("user", UserResponse.formUser(existingUser)); // Sử dụng UserResponse để chứa thông tin người dùng
+
+        return response;
     }
 }

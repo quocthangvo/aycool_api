@@ -1,24 +1,42 @@
 package com.example.shopapp_api.services.Serv.order;
 
 import com.example.shopapp_api.dtos.requests.order.OrderDTO;
+import com.example.shopapp_api.dtos.requests.order.OrderDetailDTO;
 import com.example.shopapp_api.dtos.requests.order.OrderStatusDTO;
 import com.example.shopapp_api.dtos.responses.order.OrderResponse;
+import com.example.shopapp_api.dtos.responses.price.PriceResponse;
+import com.example.shopapp_api.dtos.responses.product.ProductDetailResponse;
+import com.example.shopapp_api.dtos.responses.product.ProductResponse;
 import com.example.shopapp_api.entities.orders.Address;
 import com.example.shopapp_api.entities.orders.Order;
+import com.example.shopapp_api.entities.orders.OrderDetail;
 import com.example.shopapp_api.entities.orders.OrderStatus;
+import com.example.shopapp_api.entities.prices.Price;
+import com.example.shopapp_api.entities.products.ProductDetail;
 import com.example.shopapp_api.entities.users.User;
 import com.example.shopapp_api.exceptions.DataNotFoundException;
+import com.example.shopapp_api.repositories.order.OrderDetailRepository;
+import com.example.shopapp_api.repositories.price.PriceRepository;
+import com.example.shopapp_api.repositories.product.ProductDetailRepository;
 import com.example.shopapp_api.repositories.user.AddressRepository;
 import com.example.shopapp_api.repositories.order.OrderRepository;
 import com.example.shopapp_api.repositories.user.UserRepository;
 import com.example.shopapp_api.services.Impl.order.IOrderService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 
@@ -28,6 +46,9 @@ public class OrderService implements IOrderService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
+    private final ProductDetailRepository productDetailRepository;
+    private final OrderDetailRepository orderDetailRepository;
+    private final PriceRepository priceRepository;
     private final ModelMapper modelMapper;
 
     @Override
@@ -50,6 +71,7 @@ public class OrderService implements IOrderService {
 //        modelMapper.typeMap(OrderDTO.class, Order.class)
 //                .addMappings(mapper -> mapper.skip(Order::setId));
 //        cập nhật các trươnng đơn hàng từ orderDTO
+
         Order order = new Order();
         modelMapper.map(orderDTO, order);
         order.setUser(user);
@@ -64,9 +86,62 @@ public class OrderService implements IOrderService {
         }
         order.setShippingDate(shippingDate);
         order.setActive(true);
+
+        String orderCode = generateOrderCode();
+        order.setOrderCode(orderCode);
+
         orderRepository.save(order);
+
+        // Tính tổng tiền đơn hàng
+        float totalMoney = 0;
+
+        //tạo danh sách chi tiết đơn hàng
+        List<OrderDetail> orderDetails = new ArrayList<>();
+        for (OrderDetailDTO orderDetailDTO : orderDTO.getOrderDetails()) {
+            ProductDetail productDetail = productDetailRepository.findById(orderDetailDTO.getProductDetailId())
+                    .orElseThrow(() -> new DataNotFoundException(
+                            "Không tìm thấy chi tiết đơn hàng với id: " + orderDetailDTO.getProductDetailId()));
+
+            // Lấy giá của sản phẩm (giá bán hoặc giá khuyến mãi)
+            Price price = priceRepository.findTopByProductDetailIdOrderByCreatedAtDesc(productDetail.getId())
+                    .orElseThrow(() -> new DataNotFoundException(
+                            "Không tìm thấy giá cho sản phẩm với id: " + productDetail.getId()));
+            System.out.print("gia cuoi cung");
+            System.out.println(price);
+            // Lấy giá bán hoặc giá khuyến mãi (nếu có)
+            Float productPrice = (price.getPromotionPrice() != null && price.getPromotionPrice() > 0)
+                    ? price.getPromotionPrice() // Nếu có giá khuyến mãi thì dùng giá khuyến mãi
+                    : price.getSellingPrice(); // Ngược lại, dùng giá bán
+
+            // Tính tiền cho chi tiết sản phẩm và cộng vào tổng tiền
+            Float detailTotal = productPrice * orderDetailDTO.getQuantity();
+            totalMoney += detailTotal;
+
+            OrderDetail orderDetail = OrderDetail.builder()
+                    .order(order)
+                    .productDetail(productDetail)
+                    .quantity(orderDetailDTO.getQuantity())
+                    .totalMoney(detailTotal)
+                    .build();
+            orderDetails.add(orderDetailRepository.save(orderDetail));
+
+            // Cộng vào tổng tiền của đơn hàng
+//            totalMoney += detailTotal;
+        }
+
         // trả về
-        return modelMapper.map(order, OrderResponse.class);
+        // Cập nhật tổng tiền vào đơn hàng
+        order.setOrderDetails(orderDetails);
+        order.setTotalMoney(totalMoney);
+        orderRepository.save(order);
+        return OrderResponse.formOrder(order);
+//        return modelMapper.map(order, OrderResponse.class);
+    }
+
+    @Override
+    public Page<OrderResponse> getAllOrders(PageRequest pageRequest) {
+        return orderRepository.findAll(pageRequest).map(OrderResponse::formOrder);
+        // tham chiếu đến phương thức response :: thay vì dùng (product -> )
     }
 
     @Override
@@ -173,4 +248,35 @@ public class OrderService implements IOrderService {
         };
     }
 
+
+    // Lưu trữ số đếm cho mỗi ngày, sử dụng ConcurrentHashMap để xử lý đa luồng
+    private static final ConcurrentHashMap<String, Integer> orderCounters = new ConcurrentHashMap<>();
+
+    // Phương thức để sinh mã đơn hàng
+    private String generateOrderCode() {
+
+        // Lấy ngày hiện tại theo định dạng yyyyMMdd
+        String date = new SimpleDateFormat("yyyyMMdd").format(new Date());
+
+        Random random = new Random();
+        int randomSuffix = random.nextInt(10000);  // Giới hạn từ 0 đến 9999
+
+        // Đảm bảo số ngẫu nhiên có đúng 4 chữ số
+        String suffix = String.format("%04d", randomSuffix);
+
+//        // Kiểm tra số đếm hiện tại cho ngày này và tăng nó lên
+//        int counter = orderCounters.getOrDefault(date, 0) + 1;
+//
+//        // Cập nhật lại số đếm cho ngày này
+//        orderCounters.put(date, counter);
+
+//        String suffix = String.format("%04d", counter);
+
+        // Tạo mã đơn hàng theo định dạng ORDER-YYYYMMDD-XXXX-XX
+        return "ORDER-" + date + "-" + suffix;
+
+    }
+
+
 }
+

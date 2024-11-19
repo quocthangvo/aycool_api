@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("${api.prefix}/auths")
@@ -49,7 +50,9 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody UserLoginDTO userLoginDTO) {
         try {
-            String token = authService.login(userLoginDTO.getEmail(), userLoginDTO.getPassword());
+            Map<String, Object> token = authService.login(userLoginDTO.getEmail(), userLoginDTO.getPassword()
+//                    userLoginDTO.getRoleId() == null ? 2 : userLoginDTO.getRoleId()
+            );
             return ResponseEntity.ok(new ApiResponse<>("Đăng nhập thành công", token));
 
         } catch (Exception e) {

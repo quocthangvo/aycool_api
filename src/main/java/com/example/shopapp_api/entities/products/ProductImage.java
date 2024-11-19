@@ -1,5 +1,6 @@
 package com.example.shopapp_api.entities.products;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,5 +25,6 @@ public class ProductImage {
 
     @ManyToOne
     @JoinColumn(name = "product_id")
+    @JsonBackReference // bỏ qua id tránh lập lại
     private Product product;
 }

@@ -29,7 +29,11 @@ public class PriceResponse {
     @JsonProperty("product_detail_id")
     private int productDetailId;
 
+    @JsonProperty("product_detail_name")
     private String productDetailName;
+
+    private String size;
+    private String color;
 
     public static PriceResponse formPrice(Price price) {
         PriceResponse priceResponse = PriceResponse
@@ -40,8 +44,9 @@ public class PriceResponse {
                 .endDate(price.getEndDate())
                 .productDetailId(price.getProductDetail().getId())
                 .productDetailName(price.getProductDetail().getProduct().getName())
+                .color(price.getProductDetail().getColor().getName())
+                .size(price.getProductDetail().getSize().getName())
                 .build();
         return priceResponse;
     }
-
 }
