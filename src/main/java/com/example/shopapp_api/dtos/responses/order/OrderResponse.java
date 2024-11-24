@@ -68,17 +68,23 @@ public class OrderResponse extends BaseResponse {
     public static OrderResponse formOrder(Order order) {
         DecimalFormat formatter = new DecimalFormat("#,###");
         String formattedTotalMoney = formatter.format(order.getTotalMoney());
+
         // Định dạng ngày tháng năm giờ phút mà không có giây
         DateTimeFormatter formatterDate = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         String formattedOrderDate = order.getOrderDate().format(formatterDate);
-        String formattedShippingDate = order.getShippingDate().format(formatterDate);
 
+        // Kiểm tra nếu shippingDate là null trước khi trả về LocalDateTime
+        LocalDateTime shippingDate = order.getShippingDate();
+        if (shippingDate == null) {
+            shippingDate = LocalDateTime.now();  // Hoặc có thể đặt giá trị mặc định khác
+        }
 
         // Chuyển đổi danh sách orderDetails thành OrderDetailResponse
         List<OrderDetailResponse> orderDetailResponses = order.getOrderDetails().stream()
-                .map(OrderDetailResponse::formOrderDetail) // Giả sử bạn có phương thức formOrderDetail() trong OrderDetailResponse
+                .map(OrderDetailResponse::formOrderDetail)
                 .collect(Collectors.toList());
 
+        // Tạo đối tượng OrderResponse
         OrderResponse orderResponse = OrderResponse.builder()
                 .id(order.getId())
                 .userId(order.getUser().getId())
@@ -89,9 +95,12 @@ public class OrderResponse extends BaseResponse {
                 .active(order.getActive())
                 .status(order.getStatus())
                 .statusDisplayName(order.getStatus().getStatusDisplayName())
+                .shippingDate(shippingDate)  // Trả về LocalDateTime
                 .orderDetails(orderDetailResponses)
                 .build();
 
         return orderResponse;
     }
+
+
 }

@@ -1,7 +1,9 @@
 package com.example.shopapp_api.entities.users;
 
 import com.example.shopapp_api.entities.BaseEntity;
+import com.example.shopapp_api.entities.cart.Cart;
 import com.example.shopapp_api.entities.orders.Address;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -48,10 +50,15 @@ public class User extends BaseEntity implements UserDetails {
     @ManyToOne
     @JoinColumn(name = "role_id")
     private Role role;
-    
+
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Address> addresses = new ArrayList<>();
+
+//    @OneToMany(mappedBy = "user")
+//    @JsonManagedReference
+//    private List<Cart> carts;
 
     /////////////////////////////
     @Override

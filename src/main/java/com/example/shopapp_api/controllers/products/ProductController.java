@@ -11,6 +11,7 @@ import com.example.shopapp_api.dtos.responses.product.ProductSelectResponse;
 import com.example.shopapp_api.entities.products.Product;
 import com.example.shopapp_api.entities.products.ProductImage;
 import com.example.shopapp_api.exceptions.DataNotFoundException;
+import com.example.shopapp_api.repositories.product.ProductImageRepository;
 import com.example.shopapp_api.services.Impl.product.IProductService;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -43,9 +44,12 @@ import java.util.UUID;
 @RestController
 @RequestMapping("${api.prefix}/products")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(
+        origins = {"http://localhost:4200", "http://localhost:4201"}
+)
 public class ProductController {
     private final IProductService productService;
+    private final ProductImageRepository productImageRepository;
 
     @GetMapping("")
     public ResponseEntity<?> getALlProducts(
@@ -150,6 +154,14 @@ public class ProductController {
             if (files.size() > ProductImage.MAXIMUM_IMAGES_PER_PRODUCT) {
                 return ResponseEntity.badRequest().body("You can only upload maximum 5 images");
             }
+
+            // **Delete old images before uploading new ones**
+            List<ProductImage> existingImages = productImageRepository.findByProductId(productId);
+            for (ProductImage image : existingImages) {
+                deleteFile(image.getImageUrl()); // Delete the old image file from the storage
+                productImageRepository.delete(image); // Delete the image record from the database
+            }
+
             List<ProductImage> productImages = new ArrayList<>();
             for (MultipartFile file : files) {
                 if (file.getSize() == 0) {
@@ -182,7 +194,12 @@ public class ProductController {
             return ResponseEntity.badRequest().body(new ApiResponse<>("Lỗi: " + e.getMessage(), null));
 
         }
+    }
 
+    private void deleteFile(String filename) throws IOException {
+        Path uploadDir = Paths.get("uploads");
+        Path filePath = uploadDir.resolve(filename);
+        Files.deleteIfExists(filePath); // Delete the file if it exists
     }
 
     /////////////////upload images
@@ -225,33 +242,33 @@ public class ProductController {
         }
     }
 
-//    @GetMapping("/images/{imageName}")
-//    public ResponseEntity<?> viewImage(@PathVariable String imageName) {
-//        try {
-//            Path imagePath = Paths.get("uploads/" + imageName);
-//            UrlResource resource = new UrlResource(imagePath.toUri());
-//            if (resource.exists()) {
-////                // Kiểm tra định dạng của file (ví dụ PNG hoặc JPG)
-////                MediaType mediaType = MediaType.IMAGE_PNG; // Mặc định là PNG
-////                String contentType = Files.probeContentType(imagePath);
-////                if (contentType != null && contentType.startsWith("image")) {
-////                    mediaType = MediaType.parseMediaType(contentType);
-////                }
-//
-//                // Trả về file với mediaType tương ứng
-//                return ResponseEntity.ok()
-//                        .contentType(MediaType.IMAGE_JPEG)  // Đảm bảo trả về đúng loại media
-//                        .body(resource);
-//            } else {
-////                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-////                        .body(new ApiResponse<>("Ảnh không tìm thấy", null));
-//                return ResponseEntity.notFound().build();
-//            }
-//        } catch (Exception e) {
-////            return ResponseEntity.badRequest().body(new ApiResponse<>("Lỗi: " + e.getMessage(), null));
-//            return ResponseEntity.notFound().build();
-//        }
-//    }
+    @GetMapping("/images/{imageName}")
+    public ResponseEntity<?> viewImage(@PathVariable String imageName) {
+        try {
+            Path imagePath = Paths.get("uploads/" + imageName);
+            UrlResource resource = new UrlResource(imagePath.toUri());
+            if (resource.exists()) {
+//                // Kiểm tra định dạng của file (ví dụ PNG hoặc JPG)
+//                MediaType mediaType = MediaType.IMAGE_PNG; // Mặc định là PNG
+//                String contentType = Files.probeContentType(imagePath);
+//                if (contentType != null && contentType.startsWith("image")) {
+//                    mediaType = MediaType.parseMediaType(contentType);
+//                }
+
+                // Trả về file với mediaType tương ứng
+                return ResponseEntity.ok()
+                        .contentType(MediaType.IMAGE_PNG)  // Đảm bảo trả về đúng loại media
+                        .body(resource);
+            } else {
+//                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+//                        .body(new ApiResponse<>("Ảnh không tìm thấy", null));
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+//            return ResponseEntity.badRequest().body(new ApiResponse<>("Lỗi: " + e.getMessage(), null));
+            return ResponseEntity.notFound().build();
+        }
+    }
 
     @GetMapping("/all")
     public ResponseEntity<ApiResponse<List<ProductSelectResponse>>> getAllProducts() {
@@ -260,42 +277,42 @@ public class ProductController {
     }
 
 
-    @GetMapping("/images/{imageName}")
-    public ResponseEntity<?> getImage(@PathVariable String imageName) {
-        try {
-            // Đường dẫn tới file hình ảnh trong thư mục uploads
-            Path duongDanHinhAnh = Paths.get("uploads").resolve(imageName).normalize();
-
-            // Kiểm tra xem file có tồn tại và có thể đọc được không
-            if (!Files.exists(duongDanHinhAnh) || !Files.isReadable(duongDanHinhAnh)) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("Không tìm thấy hình ảnh hoặc không thể truy cập.");
-            }
-
-            // Lấy loại MIME (loại nội dung) của file
-            String loaiNoiDung = Files.probeContentType(duongDanHinhAnh);
-            if (loaiNoiDung == null || !loaiNoiDung.startsWith("image")) {
-                return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
-                        .body("File không phải là loại hình ảnh hợp lệ.");
-            }
-
-            // Tạo resource từ file
-            UrlResource resource = new UrlResource(duongDanHinhAnh.toUri());
-
-            // Kiểm tra lần cuối nếu resource tồn tại
-            if (resource.exists()) {
-                return ResponseEntity.ok()
-                        .contentType(MediaType.parseMediaType(loaiNoiDung)) // Đặt đúng loại MIME
-                        .body(resource);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("Không tìm thấy hình ảnh.");
-            }
-        } catch (Exception e) {
-            // Xử lý lỗi và trả về thông báo lỗi
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Lỗi khi tải hình ảnh: " + e.getMessage());
-        }
-    }
+//    @GetMapping("/images/{imageName}")
+//    public ResponseEntity<?> getImage(@PathVariable String imageName) {
+//        try {
+//            // Đường dẫn tới file hình ảnh trong thư mục uploads
+//            Path duongDanHinhAnh = Paths.get("uploads").resolve(imageName).normalize();
+//
+//            // Kiểm tra xem file có tồn tại và có thể đọc được không
+//            if (!Files.exists(duongDanHinhAnh) || !Files.isReadable(duongDanHinhAnh)) {
+//                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+//                        .body("Không tìm thấy hình ảnh hoặc không thể truy cập.");
+//            }
+//
+//            // Lấy loại MIME (loại nội dung) của file
+//            String loaiNoiDung = Files.probeContentType(duongDanHinhAnh);
+//            if (loaiNoiDung == null || !loaiNoiDung.startsWith("image")) {
+//                return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+//                        .body("File không phải là loại hình ảnh hợp lệ.");
+//            }
+//
+//            // Tạo resource từ file
+//            UrlResource resource = new UrlResource(duongDanHinhAnh.toUri());
+//
+//            // Kiểm tra lần cuối nếu resource tồn tại
+//            if (resource.exists()) {
+//                return ResponseEntity.ok()
+//                        .contentType(MediaType.parseMediaType(loaiNoiDung)) // Đặt đúng loại MIME
+//                        .body(resource);
+//            } else {
+//                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+//                        .body("Không tìm thấy hình ảnh.");
+//            }
+//        } catch (Exception e) {
+//            // Xử lý lỗi và trả về thông báo lỗi
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body("Lỗi khi tải hình ảnh: " + e.getMessage());
+//        }
+//    }
 
 }

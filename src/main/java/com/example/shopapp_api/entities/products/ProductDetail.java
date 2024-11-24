@@ -2,6 +2,7 @@ package com.example.shopapp_api.entities.products;
 
 import com.example.shopapp_api.entities.attributes.Color;
 import com.example.shopapp_api.entities.attributes.Size;
+import com.example.shopapp_api.entities.cart.CartItem;
 import com.example.shopapp_api.entities.prices.Price;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -48,4 +49,9 @@ public class ProductDetail {
     @OneToMany(mappedBy = "productDetail")
     @JsonManagedReference
     private List<Price> prices;
+
+//    //cart
+//    @OneToMany(mappedBy = "productDetail")
+//    @JsonManagedReference
+//    private CartItem cartItem;
 }

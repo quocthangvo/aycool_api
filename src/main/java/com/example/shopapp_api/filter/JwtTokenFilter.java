@@ -74,6 +74,14 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     }
 
     private boolean isByPassToken(@NonNull HttpServletRequest request) {
+        if ("GET".equalsIgnoreCase(request.getMethod())
+//                ||
+//                "POST".equalsIgnoreCase(request.getMethod()) ||
+//                "DELETE".equalsIgnoreCase(request.getMethod()) ||
+//                "PUT".equalsIgnoreCase(request.getMethod())
+        ) {
+            return true;
+        }
         //request k can token
         final List<Pair<String, String>> byPassTokens = Arrays.asList(
                 Pair.of(String.format("%s/roles", apiPrefix), "GET"),
@@ -88,6 +96,9 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 Pair.of(String.format("%s/prices", apiPrefix), "GET"),
                 Pair.of(String.format("%s/auths/register", apiPrefix), "POST"),
                 Pair.of(String.format("%s/auths/login", apiPrefix), "POST")
+
+
+//                Pair.of(String.format("%s/cart", apiPrefix), "GET")
 
         );
         for (Pair<String, String> byPassToken : byPassTokens) {

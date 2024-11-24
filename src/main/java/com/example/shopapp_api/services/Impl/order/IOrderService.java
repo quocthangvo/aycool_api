@@ -3,6 +3,7 @@ package com.example.shopapp_api.services.Impl.order;
 import com.example.shopapp_api.dtos.requests.order.OrderDTO;
 import com.example.shopapp_api.dtos.requests.order.OrderStatusDTO;
 import com.example.shopapp_api.dtos.responses.order.OrderResponse;
+import com.example.shopapp_api.dtos.responses.order.StatusResponse;
 import com.example.shopapp_api.exceptions.DataNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,7 +19,8 @@ public interface IOrderService {
 
     void deleteOrder(int id);
 
-    OrderResponse updateOrder(int orderId, OrderStatusDTO orderStatusDTO) throws DataNotFoundException;
+    StatusResponse updateOrder(int orderId, OrderStatusDTO orderStatusDTO) throws DataNotFoundException;
 
     Page<OrderResponse> getAllOrders(PageRequest pageRequest);
+
 }

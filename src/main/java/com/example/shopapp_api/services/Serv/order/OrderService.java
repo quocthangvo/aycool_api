@@ -4,9 +4,12 @@ import com.example.shopapp_api.dtos.requests.order.OrderDTO;
 import com.example.shopapp_api.dtos.requests.order.OrderDetailDTO;
 import com.example.shopapp_api.dtos.requests.order.OrderStatusDTO;
 import com.example.shopapp_api.dtos.responses.order.OrderResponse;
+import com.example.shopapp_api.dtos.responses.order.StatusResponse;
 import com.example.shopapp_api.dtos.responses.price.PriceResponse;
 import com.example.shopapp_api.dtos.responses.product.ProductDetailResponse;
 import com.example.shopapp_api.dtos.responses.product.ProductResponse;
+import com.example.shopapp_api.entities.cart.Cart;
+import com.example.shopapp_api.entities.cart.CartItem;
 import com.example.shopapp_api.entities.orders.Address;
 import com.example.shopapp_api.entities.orders.Order;
 import com.example.shopapp_api.entities.orders.OrderDetail;
@@ -15,6 +18,7 @@ import com.example.shopapp_api.entities.prices.Price;
 import com.example.shopapp_api.entities.products.ProductDetail;
 import com.example.shopapp_api.entities.users.User;
 import com.example.shopapp_api.exceptions.DataNotFoundException;
+import com.example.shopapp_api.repositories.cart.CartRepository;
 import com.example.shopapp_api.repositories.order.OrderDetailRepository;
 import com.example.shopapp_api.repositories.price.PriceRepository;
 import com.example.shopapp_api.repositories.product.ProductDetailRepository;
@@ -32,10 +36,7 @@ import org.springframework.stereotype.Service;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -50,93 +51,94 @@ public class OrderService implements IOrderService {
     private final OrderDetailRepository orderDetailRepository;
     private final PriceRepository priceRepository;
     private final ModelMapper modelMapper;
+    private final CartRepository cartRepository;
 
-    @Override
-    public OrderResponse createOrder(OrderDTO orderDTO) throws DataNotFoundException {
-        User user = userRepository
-                .findById(orderDTO.getUserId())
-                .orElseThrow(() -> new DataNotFoundException("Người dùng không tồn tại với id " + orderDTO.getUserId()));
-        // Lấy thông tin địa chỉ
-        Address address = addressRepository
-                .findById(orderDTO.getAddressId())
-                .orElseThrow(() -> new DataNotFoundException("Địa chỉ không tồn tại với id " + orderDTO.getAddressId()));
-
-        // Kiểm tra địa chỉ có thuộc về người dùng hay không
-        if (address.getUser().getId() != user.getId()) {
-            throw new DataNotFoundException("Địa chỉ không thuộc về người dùng này");
-        }
-//       convert orderDTO -> order
-        // dùng thư viện model mapper
-        // ánh xạ từ orderDTO -> order skip qua id
-//        modelMapper.typeMap(OrderDTO.class, Order.class)
-//                .addMappings(mapper -> mapper.skip(Order::setId));
-//        cập nhật các trươnng đơn hàng từ orderDTO
-
-        Order order = new Order();
-        modelMapper.map(orderDTO, order);
-        order.setUser(user);
-        order.setAddress(address);
-
-        order.setOrderDate(LocalDateTime.now());
-        order.setStatus(OrderStatus.PENDING);
-        //kt ngày giao hàng k phải hôm nay
-        LocalDateTime shippingDate = orderDTO.getShippingDate() == null ? LocalDateTime.now() : orderDTO.getShippingDate();
-        if (shippingDate.isBefore(LocalDateTime.now())) {
-            throw new DataNotFoundException("Ngày giao hàng không phải hôm nay");
-        }
-        order.setShippingDate(shippingDate);
-        order.setActive(true);
-
-        String orderCode = generateOrderCode();
-        order.setOrderCode(orderCode);
-
-        orderRepository.save(order);
-
-        // Tính tổng tiền đơn hàng
-        float totalMoney = 0;
-
-        //tạo danh sách chi tiết đơn hàng
-        List<OrderDetail> orderDetails = new ArrayList<>();
-        for (OrderDetailDTO orderDetailDTO : orderDTO.getOrderDetails()) {
-            ProductDetail productDetail = productDetailRepository.findById(orderDetailDTO.getProductDetailId())
-                    .orElseThrow(() -> new DataNotFoundException(
-                            "Không tìm thấy chi tiết đơn hàng với id: " + orderDetailDTO.getProductDetailId()));
-
-            // Lấy giá của sản phẩm (giá bán hoặc giá khuyến mãi)
-            Price price = priceRepository.findTopByProductDetailIdOrderByCreatedAtDesc(productDetail.getId())
-                    .orElseThrow(() -> new DataNotFoundException(
-                            "Không tìm thấy giá cho sản phẩm với id: " + productDetail.getId()));
-            System.out.print("gia cuoi cung");
-            System.out.println(price);
-            // Lấy giá bán hoặc giá khuyến mãi (nếu có)
-            Float productPrice = (price.getPromotionPrice() != null && price.getPromotionPrice() > 0)
-                    ? price.getPromotionPrice() // Nếu có giá khuyến mãi thì dùng giá khuyến mãi
-                    : price.getSellingPrice(); // Ngược lại, dùng giá bán
-
-            // Tính tiền cho chi tiết sản phẩm và cộng vào tổng tiền
-            Float detailTotal = productPrice * orderDetailDTO.getQuantity();
-            totalMoney += detailTotal;
-
-            OrderDetail orderDetail = OrderDetail.builder()
-                    .order(order)
-                    .productDetail(productDetail)
-                    .quantity(orderDetailDTO.getQuantity())
-                    .totalMoney(detailTotal)
-                    .build();
-            orderDetails.add(orderDetailRepository.save(orderDetail));
-
-            // Cộng vào tổng tiền của đơn hàng
+//    @Override
+//    public OrderResponse createOrder(OrderDTO orderDTO) throws DataNotFoundException {
+//        User user = userRepository
+//                .findById(orderDTO.getUserId())
+//                .orElseThrow(() -> new DataNotFoundException("Người dùng không tồn tại với id " + orderDTO.getUserId()));
+//        // Lấy thông tin địa chỉ
+//        Address address = addressRepository
+//                .findById(orderDTO.getAddressId())
+//                .orElseThrow(() -> new DataNotFoundException("Địa chỉ không tồn tại với id " + orderDTO.getAddressId()));
+//
+//        // Kiểm tra địa chỉ có thuộc về người dùng hay không
+//        if (address.getUser().getId() != user.getId()) {
+//            throw new DataNotFoundException("Địa chỉ không thuộc về người dùng này");
+//        }
+////       convert orderDTO -> order
+//        // dùng thư viện model mapper
+//        // ánh xạ từ orderDTO -> order skip qua id
+////        modelMapper.typeMap(OrderDTO.class, Order.class)
+////                .addMappings(mapper -> mapper.skip(Order::setId));
+////        cập nhật các trươnng đơn hàng từ orderDTO
+//
+//        Order order = new Order();
+//        modelMapper.map(orderDTO, order);
+//        order.setUser(user);
+//        order.setAddress(address);
+//
+//        order.setOrderDate(LocalDateTime.now());
+//        order.setStatus(OrderStatus.PENDING);
+//        //kt ngày giao hàng k phải hôm nay
+//        LocalDateTime shippingDate = orderDTO.getShippingDate() == null ? LocalDateTime.now() : orderDTO.getShippingDate();
+//        if (shippingDate.isBefore(LocalDateTime.now())) {
+//            throw new DataNotFoundException("Ngày giao hàng không phải hôm nay");
+//        }
+//        order.setShippingDate(shippingDate);
+//        order.setActive(true);
+//
+//        String orderCode = generateOrderCode();
+//        order.setOrderCode(orderCode);
+//
+//        orderRepository.save(order);
+//
+//        // Tính tổng tiền đơn hàng
+//        float totalMoney = 0;
+//
+//        //tạo danh sách chi tiết đơn hàng
+//        List<OrderDetail> orderDetails = new ArrayList<>();
+//        for (OrderDetailDTO orderDetailDTO : orderDTO.getOrderDetails()) {
+//            ProductDetail productDetail = productDetailRepository.findById(orderDetailDTO.getProductDetailId())
+//                    .orElseThrow(() -> new DataNotFoundException(
+//                            "Không tìm thấy chi tiết đơn hàng với id: " + orderDetailDTO.getProductDetailId()));
+//
+//            // Lấy giá của sản phẩm (giá bán hoặc giá khuyến mãi)
+//            Price price = priceRepository.findTopByProductDetailIdOrderByCreatedAtDesc(productDetail.getId())
+//                    .orElseThrow(() -> new DataNotFoundException(
+//                            "Không tìm thấy giá cho sản phẩm với id: " + productDetail.getId()));
+//            System.out.print("gia cuoi cung");
+//            System.out.println(price);
+//            // Lấy giá bán hoặc giá khuyến mãi (nếu có)
+//            Float productPrice = (price.getPromotionPrice() != null && price.getPromotionPrice() > 0)
+//                    ? price.getPromotionPrice() // Nếu có giá khuyến mãi thì dùng giá khuyến mãi
+//                    : price.getSellingPrice(); // Ngược lại, dùng giá bán
+//
+//            // Tính tiền cho chi tiết sản phẩm và cộng vào tổng tiền
+//            Float detailTotal = productPrice * orderDetailDTO.getQuantity();
 //            totalMoney += detailTotal;
-        }
-
-        // trả về
-        // Cập nhật tổng tiền vào đơn hàng
-        order.setOrderDetails(orderDetails);
-        order.setTotalMoney(totalMoney);
-        orderRepository.save(order);
-        return OrderResponse.formOrder(order);
-//        return modelMapper.map(order, OrderResponse.class);
-    }
+//
+//            OrderDetail orderDetail = OrderDetail.builder()
+//                    .order(order)
+//                    .productDetail(productDetail)
+//                    .quantity(orderDetailDTO.getQuantity())
+//                    .totalMoney(detailTotal)
+//                    .build();
+//            orderDetails.add(orderDetailRepository.save(orderDetail));
+//
+//            // Cộng vào tổng tiền của đơn hàng
+////            totalMoney += detailTotal;
+//        }
+//
+//        // trả về
+//        // Cập nhật tổng tiền vào đơn hàng
+//        order.setOrderDetails(orderDetails);
+//        order.setTotalMoney(totalMoney);
+//        orderRepository.save(order);
+//        return OrderResponse.formOrder(order);
+////        return modelMapper.map(order, OrderResponse.class);
+//    }
 
     @Override
     public Page<OrderResponse> getAllOrders(PageRequest pageRequest) {
@@ -209,12 +211,39 @@ public class OrderService implements IOrderService {
 //        return modelMapper.map(updatedOrder, OrderResponse.class);
 //    }
 
+//    @Override
+//    @PreAuthorize("hasRole('ADMIN')")
+//    public OrderResponse updateOrder(int orderId, OrderStatusDTO orderStatusDTO) throws DataNotFoundException {
+//        // Tìm kiếm đơn hàng theo orderId
+//        Order existingOrder = orderRepository.findById(orderId)
+//                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy đơn hàng với ID: " + orderId));
+//        // Kiểm tra trạng thái mới từ orderStatusDTO
+//        if (orderStatusDTO.getStatus() != null) {
+//            // Kiểm tra trạng thái hiện tại và trạng thái mới
+//            OrderStatus currentStatus = existingOrder.getStatus();
+//            OrderStatus newStatus = orderStatusDTO.getStatus();
+//
+//            // Kiểm tra thứ tự trạng thái hợp lệ
+//            if (!isValidTransition(currentStatus, newStatus)) {
+//                throw new IllegalArgumentException("Không thể chuyển trạng thái từ " + currentStatus + " sang " + newStatus);
+//            }
+//            existingOrder.setStatus(newStatus);
+//        }
+//
+//        // Lưu đơn hàng đã cập nhật
+//        Order updatedOrder = orderRepository.save(existingOrder);
+//
+//        // Chuyển đổi và trả về OrderResponse
+//        return modelMapper.map(updatedOrder, OrderResponse.class);
+//    }
+
     @Override
     @PreAuthorize("hasRole('ADMIN')")
-    public OrderResponse updateOrder(int orderId, OrderStatusDTO orderStatusDTO) throws DataNotFoundException {
+    public StatusResponse updateOrder(int orderId, OrderStatusDTO orderStatusDTO) throws DataNotFoundException {
         // Tìm kiếm đơn hàng theo orderId
         Order existingOrder = orderRepository.findById(orderId)
                 .orElseThrow(() -> new DataNotFoundException("Không tìm thấy đơn hàng với ID: " + orderId));
+
         // Kiểm tra trạng thái mới từ orderStatusDTO
         if (orderStatusDTO.getStatus() != null) {
             // Kiểm tra trạng thái hiện tại và trạng thái mới
@@ -232,9 +261,10 @@ public class OrderService implements IOrderService {
         // Lưu đơn hàng đã cập nhật
         Order updatedOrder = orderRepository.save(existingOrder);
 
-        // Chuyển đổi và trả về OrderResponse
-        return modelMapper.map(updatedOrder, OrderResponse.class);
+        // Trả về StatusResponse
+        return StatusResponse.formStatus(updatedOrder);
     }
+
 
     // Phương thức kiểm tra thứ tự trạng thái
     private boolean isValidTransition(OrderStatus currentStatus, OrderStatus newStatus) {
@@ -254,7 +284,6 @@ public class OrderService implements IOrderService {
 
     // Phương thức để sinh mã đơn hàng
     private String generateOrderCode() {
-
         // Lấy ngày hiện tại theo định dạng yyyyMMdd
         String date = new SimpleDateFormat("yyyyMMdd").format(new Date());
 
@@ -264,19 +293,157 @@ public class OrderService implements IOrderService {
         // Đảm bảo số ngẫu nhiên có đúng 4 chữ số
         String suffix = String.format("%04d", randomSuffix);
 
-//        // Kiểm tra số đếm hiện tại cho ngày này và tăng nó lên
-//        int counter = orderCounters.getOrDefault(date, 0) + 1;
-//
-//        // Cập nhật lại số đếm cho ngày này
-//        orderCounters.put(date, counter);
-
-//        String suffix = String.format("%04d", counter);
-
-        // Tạo mã đơn hàng theo định dạng ORDER-YYYYMMDD-XXXX-XX
         return "ORDER-" + date + "-" + suffix;
+    }
 
+
+//    @Override
+//    public OrderResponse createOrder(OrderDTO orderDTO) throws DataNotFoundException {
+//        // Lấy giỏ hàng của người dùng
+//        Cart cart = cartRepository.findByUserId(orderDTO.getUserId())
+//                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy giỏ hàng của người dùng"));
+//
+//        // Kiểm tra địa chỉ giao hàng
+//        Address address = addressRepository.findById(orderDTO.getAddressId())
+//                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy địa chỉ với id: " + orderDTO.getAddressId()));
+//
+//        // Tạo đơn hàng mới
+//        Order order = new Order();
+//        order.setUser(cart.getUser());
+//        order.setAddress(address);
+//        order.setOrderDate(LocalDateTime.now());
+//        order.setStatus(OrderStatus.PENDING);
+//        order.setActive(true);
+//        order.setOrderCode(generateOrderCode());
+//        order.setPaymentMethod(orderDTO.getPaymentMethod());
+//        order.setShippingDate(orderDTO.getShippingDate());
+//        order.setNote(orderDTO.getNote());
+//        orderRepository.save(order);
+//        //kt ngày giao hàng k phải hôm nay
+//        LocalDateTime shippingDate = orderDTO.getShippingDate() == null ? LocalDateTime.now() : orderDTO.getShippingDate();
+//        if (shippingDate.isBefore(LocalDateTime.now())) {
+//            throw new DataNotFoundException("Ngày giao hàng không phải hôm nay");
+//        }
+//
+//        // Duyệt qua các mục trong giỏ hàng và thêm vào `OrderDetail`
+//        float totalMoney = 0;
+//        List<OrderDetail> orderDetails = new ArrayList<>();
+//
+//        for (CartItem cartItem : cart.getItems()) {
+//            ProductDetail productDetail = cartItem.getProductDetail();
+//
+//            // Tính giá sản phẩm (ưu tiên giá khuyến mãi nếu có)
+//            Price price = productDetail.getPrices().stream()
+//                    .max(Comparator.comparing(Price::getCreatedAt))
+//                    .orElseThrow(() -> new DataNotFoundException("Không tìm thấy giá cho sản phẩm"));
+//
+//            float productPrice = (price.getPromotionPrice() != null && price.getPromotionPrice() > 0)
+//                    ? price.getPromotionPrice()
+//                    : price.getSellingPrice();
+//
+//            float detailTotal = productPrice * cartItem.getQuantity();
+//            totalMoney += detailTotal;
+//
+//            // Tạo `OrderDetail`
+//            OrderDetail orderDetail = new OrderDetail();
+//            orderDetail.setOrder(order);
+//            orderDetail.setProductDetail(productDetail);
+//            orderDetail.setQuantity(cartItem.getQuantity());
+//            orderDetail.setTotalMoney(detailTotal);
+//            orderDetailRepository.save(orderDetail);
+//
+//            orderDetails.add(orderDetail);
+//        }
+//
+//        // Cập nhật tổng tiền cho đơn hàng
+//        order.setTotalMoney(totalMoney);
+//        order.setOrderDetails(orderDetails);
+//        orderRepository.save(order);
+//
+//        // Xóa giỏ hàng sau khi đặt hàng thành công
+//        cart.getItems().clear();
+//        cartRepository.save(cart);
+//
+//        // Trả về thông tin đơn hàng
+//        return OrderResponse.formOrder(order);
+//    }
+
+    @Override
+    public OrderResponse createOrder(OrderDTO orderDTO) throws DataNotFoundException {
+        // Lấy giỏ hàng của người dùng
+        Cart cart = cartRepository.findByUserId(orderDTO.getUserId())
+                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy giỏ hàng của người dùng"));
+
+        // Kiểm tra địa chỉ giao hàng
+        Address address = addressRepository.findById(orderDTO.getAddressId())
+                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy địa chỉ với id: " + orderDTO.getAddressId()));
+
+        // Tạo đơn hàng mới
+        Order order = new Order();
+        order.setUser(cart.getUser());
+        order.setAddress(address);
+        order.setOrderDate(LocalDateTime.now());
+        order.setStatus(OrderStatus.PENDING);
+        order.setActive(true);
+        order.setOrderCode(generateOrderCode());
+        order.setPaymentMethod(orderDTO.getPaymentMethod());
+        order.setShippingDate(orderDTO.getShippingDate());
+        order.setNote(orderDTO.getNote());
+        orderRepository.save(order);
+
+        // Kiểm tra ngày giao hàng
+        LocalDateTime shippingDate = orderDTO.getShippingDate() == null ? LocalDateTime.now() : orderDTO.getShippingDate();
+        if (shippingDate.isBefore(LocalDateTime.now())) {
+            throw new DataNotFoundException("Ngày giao hàng không phải hôm nay");
+        }
+
+        // Duyệt qua các mục trong giỏ hàng được chọn và thêm vào `OrderDetail`
+        float totalMoney = 0;
+        List<OrderDetail> orderDetails = new ArrayList<>();
+
+        // Lọc các CartItem theo cartItemId từ selectedItems
+        for (CartItem cartItem : cart.getItems()) {
+            if (orderDTO.getSelectedItems().contains(cartItem.getId())) {  // Kiểm tra nếu cartItemId có trong selectedItems
+                ProductDetail productDetail = cartItem.getProductDetail();
+
+                // Tính giá sản phẩm (ưu tiên giá khuyến mãi nếu có)
+                Price price = productDetail.getPrices().stream()
+                        .max(Comparator.comparing(Price::getCreatedAt))
+                        .orElseThrow(() -> new DataNotFoundException("Không tìm thấy giá cho sản phẩm"));
+
+                float productPrice = (price.getPromotionPrice() != null && price.getPromotionPrice() > 0)
+                        ? price.getPromotionPrice()
+                        : price.getSellingPrice();
+
+                float detailTotal = productPrice * cartItem.getQuantity();
+                totalMoney += detailTotal;
+
+                // Tạo `OrderDetail`
+                OrderDetail orderDetail = new OrderDetail();
+                orderDetail.setOrder(order);
+                orderDetail.setProductDetail(productDetail);
+                orderDetail.setQuantity(cartItem.getQuantity());
+                orderDetail.setTotalMoney(detailTotal);
+                orderDetailRepository.save(orderDetail);
+
+                orderDetails.add(orderDetail);
+            }
+        }
+
+        // Cập nhật tổng tiền cho đơn hàng
+        order.setTotalMoney(totalMoney);
+        order.setOrderDetails(orderDetails);
+        orderRepository.save(order);
+
+        // Xóa các mục đã chọn trong giỏ hàng sau khi đặt hàng thành công
+        cart.getItems().removeIf(cartItem -> orderDTO.getSelectedItems().contains(cartItem.getId()));  // Xóa các mục đã chọn
+        cartRepository.save(cart);
+
+        // Trả về thông tin đơn hàng
+        return OrderResponse.formOrder(order);
     }
 
 
 }
+
 

@@ -5,6 +5,7 @@ import com.example.shopapp_api.entities.attributes.Size;
 import com.example.shopapp_api.entities.prices.Price;
 import com.example.shopapp_api.entities.products.Product;
 import com.example.shopapp_api.entities.products.ProductDetail;
+import com.example.shopapp_api.entities.products.ProductImage;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
@@ -41,6 +42,9 @@ public class ProductDetailResponse {
     @JsonProperty("sku_name")
     private String skuName;
 
+    @JsonProperty("image_url")
+    private List<ProductImage> imageUrl;
+
 
     public static ProductDetailResponse formProductDetail(ProductDetail productDetail) {
 
@@ -53,6 +57,7 @@ public class ProductDetailResponse {
                 .quantity(productDetail.getQuantity())
                 .priceId(productDetail.getPrices())
                 .skuName(productDetail.getSkuName())
+                .imageUrl(productDetail.getProduct().getProductImages())
                 .build();
 
         return productDetailResponse;

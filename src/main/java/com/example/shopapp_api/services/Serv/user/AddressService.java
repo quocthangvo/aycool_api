@@ -57,14 +57,7 @@ public class AddressService implements IAddressService {
 
     @Override
     public List<AddressResponse> getAllAddressByUserId(int userId) throws DataNotFoundException {
-//        // Lấy người dùng hiện tại
-//        User existingUser = userRepository.findById(userId)
-//                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy user id: " + userId));
-//
-//        // Kiểm tra vai trò của người dùng
-//        if (!existingUser.getRole().getName().equals(Role.USER)) {
-//            throw new SecurityException("Người dùng không có quyền truy cập vào địa chỉ này");
-//        }
+
 
         // Lấy danh sách địa chỉ cho người dùng
         List<Address> addresses = addressRepository.findByUserId(userId);
@@ -101,6 +94,8 @@ public class AddressService implements IAddressService {
         existingAddress.setFullName(addressDTO.getFullName());
         existingAddress.setPhoneNumber(addressDTO.getPhoneNumber());
         existingAddress.setStreetName(addressDTO.getStreetName());
+        existingAddress.setDistrict(addressDTO.getDistrict());
+        existingAddress.setWard(addressDTO.getWard());
         existingAddress.setCity(addressDTO.getCity());
         // Lưu địa chỉ đã cập nhật
         Address updatedAddress = addressRepository.save(existingAddress);

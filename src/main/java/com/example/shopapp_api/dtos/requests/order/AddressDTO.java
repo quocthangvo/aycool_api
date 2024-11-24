@@ -32,5 +32,9 @@ public class AddressDTO {
 
     @NotBlank(message = "City is required")
     private String city;
-    
+
+    private String district;
+
+    private String ward;
+
 }

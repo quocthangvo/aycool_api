@@ -116,14 +116,26 @@ public class WebSecurityConfig {
                             .requestMatchers(PUT, String.format("%s/order_details/**", apiPrefix)).hasRole(Role.USER)
                             //address
                             .requestMatchers(POST, String.format("%s/addresses/**", apiPrefix)).hasAnyRole(Role.USER)
-                            .requestMatchers(GET, String.format("%s/addresses/**", apiPrefix)).hasRole(Role.USER)
+                            .requestMatchers(GET, String.format("%s/addresses/**", apiPrefix)).permitAll()
                             .requestMatchers(DELETE, String.format("%s/addresses/**", apiPrefix)).hasRole(Role.USER)
                             .requestMatchers(PUT, String.format("%s/addresses/**", apiPrefix)).hasRole(Role.USER)
+
+                            //carts
+                            .requestMatchers(POST, String.format("%s/carts/**", apiPrefix)).hasAnyRole(Role.USER)
+                            .requestMatchers(GET, String.format("%s/carts/**", apiPrefix)).permitAll()
+                            .requestMatchers(DELETE, String.format("%s/carts/**", apiPrefix)).hasRole(Role.USER)
+                            .requestMatchers(PUT, String.format("%s/carts/**", apiPrefix)).hasRole(Role.USER)
 
                             //upload ảnh hiển thị
                             .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
 
                             .requestMatchers("/uploads/**").permitAll()
+
+//                            .requestMatchers(HttpMethod.GET).permitAll()// Cho phép tất cả các request GET
+//                            .requestMatchers(HttpMethod.POST).permitAll()
+//                            .requestMatchers(HttpMethod.DELETE).permitAll()
+//                            .requestMatchers(HttpMethod.PUT).permitAll()
+
                             .anyRequest().authenticated();
 
                 });
@@ -133,7 +145,7 @@ public class WebSecurityConfig {
             public void customize(CorsConfigurer<HttpSecurity> httpSecurityCorsConfigurer) {
 
                 CorsConfiguration configuration = new CorsConfiguration();
-                configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200"));
+                configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200", "http://localhost:4201"));
                 configuration.setAllowedOrigins(List.of("*"));
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                 configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type", "x-auth-token"));
@@ -143,12 +155,7 @@ public class WebSecurityConfig {
                 httpSecurityCorsConfigurer.configurationSource(source);
 
             }
-        }); // cho phép tất cả request gửi đến client
-//        http.authorizeRequests(authorize -> authorize
-//                .requestMatchers("/uploads/**").permitAll() // Cho phép truy cập ảnh mà không cần xác thực
-//                .anyRequest().authenticated()// Các endpoint khác yêu cầu xác thực
-//        );
-
+        });
 
         return http.build();
     }

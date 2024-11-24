@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @RestController
-@CrossOrigin(origins = "http://localhost:4200")
+
 public class ProductService implements IProductService {
     private final ProductRepository productRepository;
     private final SubCategoryRepository subCategoryRepository;

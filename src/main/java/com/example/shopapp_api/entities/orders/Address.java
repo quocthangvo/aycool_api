@@ -1,6 +1,7 @@
 package com.example.shopapp_api.entities.orders;
 
 import com.example.shopapp_api.entities.users.User;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,7 +29,12 @@ public class Address {
     @Column(name = "city", length = 100)
     private String city;
 
+    private String district;
+
+    private String ward;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @JsonBackReference
     private User user;
 }

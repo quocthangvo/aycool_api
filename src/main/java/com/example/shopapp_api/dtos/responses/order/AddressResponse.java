@@ -9,6 +9,8 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class AddressResponse {
+    private int id;
+
     @JsonProperty("user_id")
     private int userId;
 
@@ -23,4 +25,8 @@ public class AddressResponse {
 
     @JsonProperty("city")
     private String city;
+
+    private String district;
+
+    private String ward;
 }

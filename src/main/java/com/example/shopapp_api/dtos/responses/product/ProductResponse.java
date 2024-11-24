@@ -1,6 +1,7 @@
 package com.example.shopapp_api.dtos.responses.product;
 
 import com.example.shopapp_api.dtos.responses.BaseResponse;
+import com.example.shopapp_api.entities.categories.Category;
 import com.example.shopapp_api.entities.products.Product;
 import com.example.shopapp_api.entities.products.ProductDetail;
 import com.example.shopapp_api.entities.products.ProductImage;
@@ -45,6 +46,8 @@ public class ProductResponse extends BaseResponse {
     @JsonProperty("product_images")
     private List<ProductImage> productImages;
 
+    private Category category;
+
 //    @JsonProperty("color_id")
 //    private int colorId;
 //
@@ -69,6 +72,7 @@ public class ProductResponse extends BaseResponse {
                 .materialName(product.getMaterial().getName())
                 .productDetails(product.getProductDetails())
                 .productImages(product.getProductImages())
+                .category(product.getSubCategory().getCategory())
                 .build();
         productResponse.setCreatedAt(product.getCreatedAt());
         productResponse.setUpdatedAt(product.getUpdatedAt());

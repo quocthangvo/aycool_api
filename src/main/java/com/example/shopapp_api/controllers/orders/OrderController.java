@@ -6,6 +6,7 @@ import com.example.shopapp_api.dtos.responses.apiResponse.ApiResponse;
 import com.example.shopapp_api.dtos.responses.apiResponse.MessageResponse;
 import com.example.shopapp_api.dtos.responses.order.OrderListResponse;
 import com.example.shopapp_api.dtos.responses.order.OrderResponse;
+import com.example.shopapp_api.dtos.responses.order.StatusResponse;
 import com.example.shopapp_api.dtos.responses.product.ProductListResponse;
 import com.example.shopapp_api.dtos.responses.product.ProductResponse;
 import com.example.shopapp_api.services.Impl.order.IOrderService;
@@ -116,14 +117,14 @@ public class OrderController {
         }
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/update/{id}")
     //admin làm
     public ResponseEntity<?> updateOrder(
             @PathVariable("id") int id,
             @Valid @RequestBody OrderStatusDTO orderStatusDTO) {
 
         try {
-            OrderResponse updateOrder = orderService.updateOrder(id, orderStatusDTO);
+            StatusResponse updateOrder = orderService.updateOrder(id, orderStatusDTO);
             return ResponseEntity.ok(new ApiResponse<>("Cập nhật đơn hàng thành công", updateOrder));
 
         } catch (Exception e) {

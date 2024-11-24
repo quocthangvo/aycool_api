@@ -1,5 +1,6 @@
 package com.example.shopapp_api.dtos.requests.order;
 
+import com.example.shopapp_api.entities.cart.CartItem;
 import com.example.shopapp_api.entities.orders.OrderStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.EnumType;
@@ -57,4 +58,7 @@ public class OrderDTO {
 
     @JsonProperty("order_details")
     private List<OrderDetailDTO> orderDetails;
+
+    @JsonProperty("selected_items")
+    private List<Integer> selectedItems;
 }

@@ -21,22 +21,22 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
-  resources:
-    static-locations: file:./uploads/
-  web:
-    cors:
-      allowed-origins: "http://localhost:4200"
-      allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
-      allowed-headers: "Authorization, Content-Type, X-Auth-Token"
-      exposed-headers: "X-Auth-Token"
-  security:
-    filter-dispatcher-types: async, error
-    web:
-      security:
-        filter-chain:
-          - requestMatchers:
-              - "/uploads/**"
-            permitAll: true
+#  resources:
+#    static-locations: file:uploads/
+#  web:
+#    cors:
+#      allowed-origins: "http://localhost:4200"
+#      allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
+#      allowed-headers: "Authorization, Content-Type, X-Auth-Token"
+#      exposed-headers: "X-Auth-Token"
+#  security:
+#    filter-dispatcher-types: async, error
+#    web:
+#      security:
+#        filter-chain:
+#          - requestMatchers:
+#              - "/uploads/**"
+#            permitAll: true
 
 api:
   prefix: api/v1
