@@ -30,6 +30,9 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -159,21 +162,37 @@ public class OrderService implements IOrderService {
 
 
     @Override
-    public List<OrderResponse> findByUserId(int userId) throws DataNotFoundException {
-        // Lấy danh sách Order từ repository
-        List<Order> orders = orderRepository.findByUserId(userId);
+    public List<OrderResponse> findByUserId(int userId, String status) throws DataNotFoundException {
+        // Kiểm tra nếu trạng thái được cung cấp, nếu có thì lọc theo trạng thái đó
+        List<Order> orders;
 
-        // Kiểm tra nếu không có đơn hàng
-        if (orders.isEmpty()) {
-            throw new DataNotFoundException("Không có đơn hàng nào cho người dùng với ID " + userId);
+        // Chuyển đổi String status thành OrderStatus enum
+//        OrderStatus orderStatus = null;
+//        if (status != null && !status.isEmpty()) {
+//            try {
+//                orderStatus = OrderStatus.valueOf(status.toUpperCase()); // Chuyển đổi status sang Enum
+//            } catch (IllegalArgumentException e) {
+//                throw new DataNotFoundException("Trạng thái đơn hàng không hợp lệ: " + status);
+//            }
+//        }
+        if (status != null && !status.isEmpty()) {
+            // Nếu trạng thái được cung cấp, lọc theo trạng thái
+            orders = orderRepository.findByUserIdAndStatus(userId, OrderStatus.valueOf(status));
+        } else {
+            // Nếu không có trạng thái, lấy tất cả đơn hàng của người dùng
+            orders = orderRepository.findByUserId(userId);
         }
 
-//        return orders; // Trả về danh sách đơn hàng
+
+        // Nếu không có đơn hàng nào, trả về danh sách rỗng thay vì null
+        if (orders.isEmpty()) {
+            return Collections.emptyList(); // Trả về danh sách rỗng
+        }
 
         // Chuyển đổi danh sách Order sang danh sách OrderResponse
         return orders.stream()
-                .map(order -> modelMapper.map(order, OrderResponse.class))
-                .collect(Collectors.toList()); // Trả về danh sách đơn hàng
+                .map(OrderResponse::formOrder)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -441,6 +460,23 @@ public class OrderService implements IOrderService {
 
         // Trả về thông tin đơn hàng
         return OrderResponse.formOrder(order);
+    }
+
+
+    @Override
+    public Page<OrderResponse> getAllOrderss(String orderCode, List<OrderStatus> status, LocalDateTime orderDate, Pageable pageable) {
+
+        if (orderCode != null || status != null || orderDate != null) {
+            // Lọc theo các tham số
+            return orderRepository.filterOrders(orderCode, status, orderDate, pageable)
+                    .map(OrderResponse::formOrder);  // Ánh xạ từ Order sang OrderResponse
+        } else {
+            // Nếu không có tham số lọc, lấy tất cả đơn hàng
+//            Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+//                    Sort.by("createdAt").descending());
+            return orderRepository.findAll(pageable)
+                    .map(OrderResponse::formOrder);  // Ánh xạ từ Order sang OrderResponse
+        }
     }
 
 

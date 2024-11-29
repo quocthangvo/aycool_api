@@ -52,7 +52,7 @@ public class WebSecurityConfig {
                             .requestMatchers(GET, String.format("%s/users/**", apiPrefix)).permitAll()
                             .requestMatchers(POST, String.format("%s/users/**", apiPrefix)).permitAll()
                             .requestMatchers(DELETE, String.format("%s/users/**", apiPrefix)).hasRole(Role.ADMIN)
-                            .requestMatchers(PUT, String.format("%s/users/**", apiPrefix)).hasRole(Role.ADMIN)
+                            .requestMatchers(PUT, String.format("%s/users/**", apiPrefix)).permitAll()
 
                             //category
                             .requestMatchers(POST, String.format("%s/categories/**", apiPrefix)).hasRole(Role.ADMIN)
@@ -111,7 +111,7 @@ public class WebSecurityConfig {
                             .requestMatchers(PUT, String.format("%s/orders/**", apiPrefix)).hasRole(Role.ADMIN)
                             //order_detail
                             .requestMatchers(POST, String.format("%s/order_details/**", apiPrefix)).hasRole(Role.USER)
-                            .requestMatchers(GET, String.format("%s/order_details/**", apiPrefix)).hasAnyRole(Role.USER, Role.ADMIN)
+                            .requestMatchers(GET, String.format("%s/order_details/**", apiPrefix)).permitAll()
                             .requestMatchers(DELETE, String.format("%s/order_details/**", apiPrefix)).hasRole(Role.USER)
                             .requestMatchers(PUT, String.format("%s/order_details/**", apiPrefix)).hasRole(Role.USER)
                             //address
@@ -131,10 +131,10 @@ public class WebSecurityConfig {
 
                             .requestMatchers("/uploads/**").permitAll()
 
-//                            .requestMatchers(HttpMethod.GET).permitAll()// Cho phép tất cả các request GET
-//                            .requestMatchers(HttpMethod.POST).permitAll()
-//                            .requestMatchers(HttpMethod.DELETE).permitAll()
-//                            .requestMatchers(HttpMethod.PUT).permitAll()
+                            .requestMatchers(HttpMethod.GET).permitAll()// Cho phép tất cả các request GET
+                            .requestMatchers(HttpMethod.POST).permitAll()
+                            .requestMatchers(HttpMethod.DELETE).permitAll()
+                            .requestMatchers(HttpMethod.PUT).permitAll()
 
                             .anyRequest().authenticated();
 

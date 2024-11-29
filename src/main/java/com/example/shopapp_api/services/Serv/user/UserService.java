@@ -1,6 +1,9 @@
 package com.example.shopapp_api.services.Serv.user;
 
 import com.example.shopapp_api.components.JwtTokenUtil;
+import com.example.shopapp_api.dtos.requests.auth.UserDTO;
+import com.example.shopapp_api.dtos.requests.auth.UserUpdateDTO;
+import com.example.shopapp_api.dtos.requests.order.AddressDTO;
 import com.example.shopapp_api.dtos.responses.user.UserResponse;
 import com.example.shopapp_api.entities.users.User;
 import com.example.shopapp_api.exceptions.DataNotFoundException;
@@ -13,6 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 
@@ -109,6 +113,30 @@ public class UserService implements IUserService {
         } else {
             throw new Exception("Không tìm thấy người dùng");
         }
+    }
+
+    @Override
+    public UserResponse updateUser(int userId, UserUpdateDTO userDTO) throws DataNotFoundException {
+        // Tìm user trong cơ sở dữ liệu
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new DataNotFoundException("User not found with ID: " + userId));
+
+        // Lấy ngày hiện tại
+        LocalDate currentDate = LocalDate.now();
+        LocalDate dateOfBirth = userDTO.getDateOfBirth();
+
+        // Kiểm tra nếu ngày sinh là ngày hôm nay hoặc ngày trong tương lai
+        if (dateOfBirth.isEqual(currentDate) || dateOfBirth.isAfter(currentDate)) {
+            throw new IllegalArgumentException("Ngày sinh không phải hôm nay.");
+        }
+
+        // Cập nhật thông tin
+        user.setFullName(userDTO.getFullName());
+        user.setDateOfBirth(userDTO.getDateOfBirth());
+
+        // Lưu vào database
+        User updatedUser = userRepository.save(user);
+        return UserResponse.formUser(updatedUser);
     }
 
 }

@@ -1,6 +1,8 @@
 package com.example.shopapp_api.entities.categories;
 
 import com.example.shopapp_api.entities.users.Role;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,6 +24,7 @@ public class SubCategory {
     private String name;
 
     @ManyToOne
+    @JsonBackReference
     @JoinColumn(name = "category_id")
     private Category category;
 }

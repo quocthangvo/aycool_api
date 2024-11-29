@@ -4,6 +4,8 @@ import com.example.shopapp_api.dtos.requests.price.PriceDTO;
 import com.example.shopapp_api.dtos.responses.price.PriceResponse;
 import com.example.shopapp_api.entities.prices.Price;
 import com.example.shopapp_api.exceptions.DataNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 
@@ -20,7 +22,7 @@ public interface IPriceService {
 
     PriceResponse updatePrice(int priceId, PriceDTO priceDTO) throws DataNotFoundException;
 
-    List<PriceResponse> getAllPrices();
+    Page<PriceResponse> getAllPrices(PageRequest pageRequest);
 
 //    List<Price> createPrice(PriceDTO priceDTO) throws DataNotFoundException;
 }

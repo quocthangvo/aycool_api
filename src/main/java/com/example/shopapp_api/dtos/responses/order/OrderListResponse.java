@@ -15,4 +15,5 @@ import java.util.List;
 public class OrderListResponse {
     private List<OrderResponse> orderResponseList; // truyền list
     private int totalPages;
+    private long totalRecords;
 }

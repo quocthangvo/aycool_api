@@ -64,12 +64,14 @@ public class ProductController {
             Page<ProductResponse> productPage = productService.getAllProducts(pageRequest);
             //tông số trang
             int totalPages = productPage.getTotalPages();//lấy ra tổng số trang
+            long totalRecords = productPage.getTotalElements();
             List<ProductResponse> productList = productPage.getContent();//từ productPgae lấy ra ds các product getContent
 
             ProductListResponse productListResponse = (ProductListResponse
                     .builder()
                     .productResponseList(productList)
                     .totalPages(totalPages)
+                    .totalRecords(totalRecords)
                     .build());
             return ResponseEntity.ok(new ApiResponse<>("Thành công", productListResponse));
         } catch (Exception e) {
@@ -271,48 +273,40 @@ public class ProductController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse<List<ProductSelectResponse>>> getAllProducts() {
-        List<ProductSelectResponse> products = productService.getAllProductsNotPage();
-        return ResponseEntity.ok(new ApiResponse<>("Thành công", products));
+    public ResponseEntity<ApiResponse<ProductListResponse>> getAllProductss(
+            @RequestParam("page") int page,          // Mặc định là trang đầu tiên
+            @RequestParam("limit") int limit,       // Mặc định là 10 sản phẩm mỗi trang
+            @RequestParam(required = false) String name,        // Tìm kiếm theo tên
+            @RequestParam(required = false) Integer materialId  // Lọc theo chất liệu
+    ) {
+        // Tạo PageRequest với sắp xếp theo "createdAt" giảm dần
+        PageRequest pageRequest = PageRequest.of(page, limit, Sort.by("createdAt").descending());
+
+        // Gọi service để lấy dữ liệu sản phẩm
+        Page<ProductResponse> productPage;
+        if (name != null || materialId != null) {
+            // Nếu có tìm kiếm hoặc lọc, sử dụng phương thức search
+            productPage = productService.searchProducts(name, materialId, pageRequest);
+        } else {
+            // Nếu không có tìm kiếm hoặc lọc, lấy tất cả sản phẩm
+            productPage = productService.getAllProducts(pageRequest);
+        }
+
+        // Tính toán các thông tin phân trang
+        int totalPages = productPage.getTotalPages();    // Tổng số trang
+        long totalRecords = productPage.getTotalElements(); // Tổng số bản ghi
+        List<ProductResponse> productList = productPage.getContent(); // Danh sách sản phẩm
+
+        // Tạo ProductListResponse để trả về
+        ProductListResponse productListResponse = ProductListResponse.builder()
+                .productResponseList(productList)
+                .totalPages(totalPages)
+                .totalRecords(totalRecords)
+                .build();
+
+        // Đóng gói và trả về ApiResponse
+        ApiResponse<ProductListResponse> response = new ApiResponse<>("Thành công", productListResponse);
+        return ResponseEntity.ok(response);
     }
-
-
-//    @GetMapping("/images/{imageName}")
-//    public ResponseEntity<?> getImage(@PathVariable String imageName) {
-//        try {
-//            // Đường dẫn tới file hình ảnh trong thư mục uploads
-//            Path duongDanHinhAnh = Paths.get("uploads").resolve(imageName).normalize();
-//
-//            // Kiểm tra xem file có tồn tại và có thể đọc được không
-//            if (!Files.exists(duongDanHinhAnh) || !Files.isReadable(duongDanHinhAnh)) {
-//                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-//                        .body("Không tìm thấy hình ảnh hoặc không thể truy cập.");
-//            }
-//
-//            // Lấy loại MIME (loại nội dung) của file
-//            String loaiNoiDung = Files.probeContentType(duongDanHinhAnh);
-//            if (loaiNoiDung == null || !loaiNoiDung.startsWith("image")) {
-//                return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
-//                        .body("File không phải là loại hình ảnh hợp lệ.");
-//            }
-//
-//            // Tạo resource từ file
-//            UrlResource resource = new UrlResource(duongDanHinhAnh.toUri());
-//
-//            // Kiểm tra lần cuối nếu resource tồn tại
-//            if (resource.exists()) {
-//                return ResponseEntity.ok()
-//                        .contentType(MediaType.parseMediaType(loaiNoiDung)) // Đặt đúng loại MIME
-//                        .body(resource);
-//            } else {
-//                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-//                        .body("Không tìm thấy hình ảnh.");
-//            }
-//        } catch (Exception e) {
-//            // Xử lý lỗi và trả về thông báo lỗi
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                    .body("Lỗi khi tải hình ảnh: " + e.getMessage());
-//        }
-//    }
 
 }

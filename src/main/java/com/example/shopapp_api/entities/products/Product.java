@@ -31,7 +31,7 @@ public class Product extends BaseEntity {
     @Column(name = "sku", nullable = false)
     private String sku;
 
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @ManyToOne

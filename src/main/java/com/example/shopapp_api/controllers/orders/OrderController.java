@@ -9,17 +9,22 @@ import com.example.shopapp_api.dtos.responses.order.OrderResponse;
 import com.example.shopapp_api.dtos.responses.order.StatusResponse;
 import com.example.shopapp_api.dtos.responses.product.ProductListResponse;
 import com.example.shopapp_api.dtos.responses.product.ProductResponse;
+import com.example.shopapp_api.entities.orders.OrderStatus;
 import com.example.shopapp_api.services.Impl.order.IOrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -64,12 +69,14 @@ public class OrderController {
             Page<OrderResponse> orderPage = orderService.getAllOrders(pageRequest);
             //tông số trang
             int totalPages = orderPage.getTotalPages();//lấy ra tổng số trang
+            long totalRecords = orderPage.getTotalElements();
             List<OrderResponse> orderList = orderPage.getContent();//từ productPage lấy ra ds các product getContent
 
             OrderListResponse orderListResponse = (OrderListResponse
                     .builder()
                     .orderResponseList(orderList)
                     .totalPages(totalPages)
+                    .totalRecords(totalRecords)
                     .build());
             return ResponseEntity.ok(new ApiResponse<>("Thành công", orderListResponse));
         } catch (Exception e) {
@@ -81,10 +88,16 @@ public class OrderController {
 
     @GetMapping("/user/{user_id}")
     public ResponseEntity<?> getOrderByUserId(
-            @Valid @PathVariable("user_id") int userId
+            @Valid @PathVariable("user_id") int userId,
+            @RequestParam(value = "status", required = false) String status
     ) {
         try {
-            List<OrderResponse> orders = orderService.findByUserId(userId);
+            List<OrderResponse> orders = orderService.findByUserId(userId, status);
+            // Kiểm tra nếu danh sách đơn hàng rỗng
+            if (orders.isEmpty()) {
+                return ResponseEntity.ok(new ApiResponse<>("Không có đơn hàng nào", Collections.emptyList())); // Trả về danh sách rỗng
+            }
+
             return ResponseEntity.ok(new ApiResponse<>("Thành công", orders));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new ApiResponse<>("Lỗi: " + e.getMessage(), null));
@@ -132,4 +145,32 @@ public class OrderController {
 
         }
     }
+
+
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<OrderListResponse>> getOrders(
+            @RequestParam(required = false) String orderCode,
+            @RequestParam(required = false) List<OrderStatus> status,  // Accept list of statuses
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDateTime orderDate,  // Only year-month-day
+            @RequestParam("page") int page,
+            @RequestParam("limit") int limit) {
+
+        Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").descending());
+        // Lấy dữ liệu từ service
+        Page<OrderResponse> orders = orderService.getAllOrderss(orderCode, status, orderDate, pageable);
+
+        // Tạo OrderListResponse từ Page<OrderResponse>
+        OrderListResponse orderListResponse = new OrderListResponse();
+        orderListResponse.setOrderResponseList(orders.getContent()); // Lấy danh sách đơn hàng
+        orderListResponse.setTotalPages(orders.getTotalPages()); // Lấy tổng số trang
+        orderListResponse.setTotalRecords(orders.getTotalElements()); // Lấy tổng số bản ghi
+
+        // Tạo ApiResponse
+        ApiResponse<OrderListResponse> response = new ApiResponse<>("Lấy danh sách đơn hàng thành công", orderListResponse);
+
+        // Trả về response
+        return ResponseEntity.ok(response);
+    }
+
+
 }

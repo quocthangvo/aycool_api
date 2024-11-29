@@ -11,6 +11,10 @@ import com.example.shopapp_api.repositories.price.PriceRepository;
 import com.example.shopapp_api.repositories.product.ProductDetailRepository;
 import com.example.shopapp_api.services.Impl.price.IPriceService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -88,7 +92,7 @@ public class PriceService implements IPriceService {
     }
 
     @Override
-    public List<PriceResponse> getAllPrices() {
+    public Page<PriceResponse> getAllPrices(PageRequest pageRequest) {
         List<Price> prices = priceRepository.findAllByOrderByCreatedAtDesc(); // Lấy tất cả giá sắp xếp theo ngày bắt đầu
 
         // Lọc ra giá mới nhất cho mỗi productDetailId
@@ -105,7 +109,20 @@ public class PriceService implements IPriceService {
                 .map(PriceResponse::formPrice)
                 .collect(Collectors.toList());
 
-        return priceResponses;
+        // Sắp xếp danh sách theo giá
+        priceResponses.sort((p1, p2) -> {
+            if (pageRequest.getSort().getOrderFor("sellingPrice").getDirection() == Sort.Direction.ASC) {
+                return Double.compare(p1.getSellingPrice(), p2.getSellingPrice()); // Tăng dần
+            } else {
+                return Double.compare(p2.getSellingPrice(), p1.getSellingPrice()); // Giảm dần
+            }
+        });
+
+        // Tính toán phân trang (cắt dữ liệu theo pageRequest)
+        int start = Math.min((int) pageRequest.getOffset(), priceResponses.size());
+        int end = Math.min((start + pageRequest.getPageSize()), priceResponses.size());
+        List<PriceResponse> pageContent = priceResponses.subList(start, end);
+        return new PageImpl<>(pageContent, pageRequest, priceResponses.size());
     }
 
 

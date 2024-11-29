@@ -30,5 +30,7 @@ public interface IProductService {
 
     List<ProductImageResponse> getImageByProductId(int id) throws DataNotFoundException;
 
-    List<ProductSelectResponse> getAllProductsNotPage();
+    List<ProductSelectResponse> getAllProductsNotPage(); // lấy sp k theo phân trang
+
+    Page<ProductResponse> searchProducts(String name, Integer materialId, PageRequest pageRequest);
 }

@@ -241,4 +241,11 @@ public class ProductService implements IProductService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public Page<ProductResponse> searchProducts(String name, Integer materialId, PageRequest pageRequest) {
+        return productRepository
+                .searchByNameAndMaterial(name, materialId, pageRequest)
+                .map(ProductResponse::formProduct); // Chuyển đổi từ Product sang ProductResponse
+    }
+
 }

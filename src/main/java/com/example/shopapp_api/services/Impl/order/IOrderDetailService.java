@@ -3,6 +3,7 @@ package com.example.shopapp_api.services.Impl.order;
 import com.example.shopapp_api.dtos.requests.order.OrderDetailDTO;
 import com.example.shopapp_api.dtos.requests.order.UpdateOrderDetailDTO;
 import com.example.shopapp_api.dtos.responses.order.OrderDetailResponse;
+import com.example.shopapp_api.dtos.responses.order.TotalResponse;
 import com.example.shopapp_api.entities.orders.OrderDetail;
 import com.example.shopapp_api.exceptions.DataNotFoundException;
 
@@ -18,4 +19,6 @@ public interface IOrderDetailService {
     void deleteOrderDetail(int id);
 
     OrderDetailResponse updateOrderDetail(int orderId, UpdateOrderDetailDTO updateOrderDetailDTO) throws DataNotFoundException;
+
+    TotalResponse getTotal(int orderId);
 }

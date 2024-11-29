@@ -30,5 +30,4 @@ public class UserRegisterDTO {
     @JsonProperty("role_id")
     private int roleId;
 
-
 }

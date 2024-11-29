@@ -2,7 +2,10 @@ package com.example.shopapp_api.services.Serv.order;
 
 import com.example.shopapp_api.dtos.requests.order.OrderDetailDTO;
 import com.example.shopapp_api.dtos.requests.order.UpdateOrderDetailDTO;
+import com.example.shopapp_api.dtos.responses.order.AddressResponse;
 import com.example.shopapp_api.dtos.responses.order.OrderDetailResponse;
+import com.example.shopapp_api.dtos.responses.order.StatusResponse;
+import com.example.shopapp_api.dtos.responses.order.TotalResponse;
 import com.example.shopapp_api.entities.orders.Order;
 import com.example.shopapp_api.entities.orders.OrderDetail;
 import com.example.shopapp_api.entities.products.Product;
@@ -17,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -90,4 +94,36 @@ public class OrderDetailService implements IOrderDetailService {
         existingOrderDetail = orderDetailRepository.save(existingOrderDetail);
         return OrderDetailResponse.formOrderDetail(existingOrderDetail);
     }
+
+    public TotalResponse getTotal(int orderId) {
+        // Lấy tất cả các chi tiết đơn hàng theo orderId
+        List<OrderDetail> orderDetails = orderDetailRepository.findByOrderId(orderId);
+
+        // Chuyển từng OrderDetail thành OrderDetailResponse
+        List<OrderDetailResponse> detailResponses = orderDetails.stream()
+                .map(OrderDetailResponse::formOrderDetail)
+                .collect(Collectors.toList());
+
+        // Lấy tổng tiền từ Order (giả sử đơn hàng không rỗng)
+        Float totalMoney = !orderDetails.isEmpty() ? orderDetails.get(0).getOrder().getTotalMoney() : 0;
+
+        // Lấy thông tin đơn hàng
+        Order order = orderDetails.isEmpty() ? null : orderDetails.get(0).getOrder();
+
+        // Lấy thông tin địa chỉ
+        AddressResponse addressResponse = null;
+        if (order != null && order.getAddress() != null) {
+            addressResponse = AddressResponse.formAddress(order.getAddress());
+        }
+
+        // Lấy thông tin trạng thái
+        StatusResponse statusResponse = (order != null)
+                ? StatusResponse.formStatus(order)
+                : null;
+
+
+        // Tạo phản hồi gói
+        return new TotalResponse(detailResponses, totalMoney, addressResponse, statusResponse);
+    }
+
 }

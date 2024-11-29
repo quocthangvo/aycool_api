@@ -5,9 +5,11 @@ import com.example.shopapp_api.entities.products.Product;
 import com.example.shopapp_api.entities.users.Role;
 import com.example.shopapp_api.entities.users.Token;
 import com.example.shopapp_api.entities.users.User;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -30,8 +32,10 @@ public class UserResponse {
 
     private String avatar;
 
+    //    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
     @JsonProperty("date_of_birth")
-    private Date dateOfBirth;
+    @JsonFormat(pattern = "dd/MM/yyyy")
+    private LocalDate dateOfBirth;
 
 
     private Role role;

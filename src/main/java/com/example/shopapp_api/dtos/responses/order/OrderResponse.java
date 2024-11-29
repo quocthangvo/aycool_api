@@ -6,6 +6,7 @@ import com.example.shopapp_api.entities.orders.Order;
 import com.example.shopapp_api.entities.orders.OrderDetail;
 import com.example.shopapp_api.entities.orders.OrderStatus;
 import com.example.shopapp_api.entities.products.Product;
+import com.example.shopapp_api.entities.products.ProductImage;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import org.springframework.cglib.core.Local;
@@ -50,6 +51,7 @@ public class OrderResponse extends BaseResponse {
 //    @JsonProperty("shipping_method")
 //    private String shippingMethod;
 
+
     @JsonProperty("shipping_date")
     private LocalDateTime shippingDate;
 
@@ -64,6 +66,7 @@ public class OrderResponse extends BaseResponse {
 
     @JsonProperty("order_details")
     private List<OrderDetailResponse> orderDetails;
+
 
     public static OrderResponse formOrder(Order order) {
         DecimalFormat formatter = new DecimalFormat("#,###");
@@ -97,6 +100,7 @@ public class OrderResponse extends BaseResponse {
                 .statusDisplayName(order.getStatus().getStatusDisplayName())
                 .shippingDate(shippingDate)  // Trả về LocalDateTime
                 .orderDetails(orderDetailResponses)
+
                 .build();
 
         return orderResponse;

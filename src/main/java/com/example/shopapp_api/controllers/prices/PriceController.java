@@ -5,7 +5,10 @@ import com.example.shopapp_api.dtos.requests.product.ProductDetailDTO;
 import com.example.shopapp_api.dtos.requests.product.UpdateProductDetailDTO;
 import com.example.shopapp_api.dtos.responses.apiResponse.ApiResponse;
 import com.example.shopapp_api.dtos.responses.apiResponse.MessageResponse;
+import com.example.shopapp_api.dtos.responses.price.PriceListResponse;
 import com.example.shopapp_api.dtos.responses.price.PriceResponse;
+import com.example.shopapp_api.dtos.responses.product.ProductListResponse;
+import com.example.shopapp_api.dtos.responses.product.ProductResponse;
 import com.example.shopapp_api.entities.prices.Price;
 import com.example.shopapp_api.entities.products.ProductDetail;
 import com.example.shopapp_api.exceptions.DataNotFoundException;
@@ -13,6 +16,9 @@ import com.example.shopapp_api.repositories.price.PriceRepository;
 import com.example.shopapp_api.services.Impl.price.IPriceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -109,17 +115,41 @@ public class PriceController {
         }
     }
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<PriceResponse>>> getAllPrices() {
+    @GetMapping("")
+    public ResponseEntity<ApiResponse<?>> getAllPrices(
+            @RequestParam("page") int page,
+            @RequestParam("limit") int limit,
+            @RequestParam(value = "sortOrder", defaultValue = "desc") String sortOrder
+    ) {
         try {
-            List<PriceResponse> priceResponses = priceService.getAllPrices();
+            // Điều chỉnh sắp xếp theo yêu cầu của người dùng
+            Sort sort = sortOrder.equals("asc") ?
+                    Sort.by(Sort.Order.asc("sellingPrice")) :
+                    Sort.by(Sort.Order.desc("sellingPrice"));
 
-            return ResponseEntity.ok(new ApiResponse<>("thành công", priceResponses));
+            PageRequest pageRequest = PageRequest.of(page, limit, sort);
+
+            // Lấy dữ liệu phân trang từ service
+            Page<PriceResponse> pricePage = priceService.getAllPrices(pageRequest);
+
+            // Tính toán các thông tin phân trang
+            int totalPages = pricePage.getTotalPages();    // Tổng số trang
+            long totalRecords = pricePage.getTotalElements(); // Tổng số bản ghi
+            List<PriceResponse> priceList = pricePage.getContent(); // Danh sách giá
+
+            // Tạo PriceListResponse để trả về
+            PriceListResponse priceListResponse = PriceListResponse.builder()
+                    .priceResponseList(priceList)
+                    .totalPages(totalPages)
+                    .totalRecords(totalRecords)
+                    .build();
+
+            return ResponseEntity.ok(new ApiResponse<>("Thành công", priceListResponse));
 
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new ApiResponse<>("Lỗi: " + e.getMessage(), null));
         }
-
     }
+
 
 }

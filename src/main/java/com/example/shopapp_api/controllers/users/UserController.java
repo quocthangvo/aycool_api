@@ -1,11 +1,16 @@
 package com.example.shopapp_api.controllers.users;
 
+import com.example.shopapp_api.dtos.requests.auth.UserDTO;
+import com.example.shopapp_api.dtos.requests.auth.UserUpdateDTO;
+import com.example.shopapp_api.dtos.requests.order.AddressDTO;
 import com.example.shopapp_api.dtos.responses.apiResponse.ApiResponse;
 import com.example.shopapp_api.dtos.responses.apiResponse.MessageResponse;
 import com.example.shopapp_api.dtos.responses.user.UserListResponse;
 import com.example.shopapp_api.dtos.responses.user.UserResponse;
 import com.example.shopapp_api.entities.users.User;
+import com.example.shopapp_api.exceptions.DataNotFoundException;
 import com.example.shopapp_api.services.Serv.user.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -90,6 +95,20 @@ public class UserController {
             return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
 
         }
+    }
+
+    @PutMapping("/update/{userId}")
+    public ResponseEntity<?> updateUser(
+            @PathVariable("userId") int userId,
+            @Valid @RequestBody UserUpdateDTO userDTO
+    ) throws DataNotFoundException {
+        try {
+            UserResponse updatedUser = userService.updateUser(userId, userDTO);
+            return ResponseEntity.ok(new ApiResponse<>("Cập nhật thành công", updatedUser));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ApiResponse<>("Lỗi: " + e.getMessage(), null));
+        }
+
     }
 }
 

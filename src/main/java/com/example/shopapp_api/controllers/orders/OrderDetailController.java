@@ -5,6 +5,7 @@ import com.example.shopapp_api.dtos.requests.order.UpdateOrderDetailDTO;
 import com.example.shopapp_api.dtos.responses.apiResponse.ApiResponse;
 import com.example.shopapp_api.dtos.responses.apiResponse.MessageResponse;
 import com.example.shopapp_api.dtos.responses.order.OrderDetailResponse;
+import com.example.shopapp_api.dtos.responses.order.TotalResponse;
 import com.example.shopapp_api.entities.orders.OrderDetail;
 import com.example.shopapp_api.exceptions.DataNotFoundException;
 import com.example.shopapp_api.services.Serv.order.OrderDetailService;
@@ -97,6 +98,16 @@ public class OrderDetailController {
             return ResponseEntity.badRequest().body(new ApiResponse<>("Lỗi: " + e.getMessage(), null));
 
         }
-
     }
+
+    @GetMapping("/orders/{orderId}")
+    public ResponseEntity<?> getOrderDetails(@PathVariable int orderId) {
+        try {
+            TotalResponse response = orderDetailService.getTotal(orderId);
+            return ResponseEntity.ok(new ApiResponse("Thành công", response));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ApiResponse<>("Lỗi: " + e.getMessage(), null));
+        }
+    }
+
 }
