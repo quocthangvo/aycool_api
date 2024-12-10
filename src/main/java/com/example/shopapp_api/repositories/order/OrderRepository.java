@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, Integer> {
     // Phương thức tìm đơn hàng theo userId
@@ -33,7 +34,19 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
                              @Param("OrderDate") LocalDateTime OrderDate,
                              Pageable pageable);
 
-    List<Order> findByUserIdAndStatus(int userId, OrderStatus status);
+//    List<Order> findByUserIdAndStatus(int userId, OrderStatus status);
+
+    // Tìm tất cả đơn hàng theo userId và sắp xếp theo createAt giảm dần
+    List<Order> findByUserIdOrderByCreatedAtDesc(int userId);
+
+    // Tìm tất cả đơn hàng theo userId và trạng thái, sắp xếp theo createAt giảm dần
+    List<Order> findByUserIdAndStatusOrderByCreatedAtDesc(int userId, OrderStatus status);
+
+    @Query("SELECT o FROM Order o JOIN o.orderDetails od WHERE o.user.id = :userId AND o.status = :status AND od.productDetail.id = :productDetailId")
+    Optional<Order> findByUserIdAndStatusAndOrderDetailsProductDetailId(
+            @Param("userId") int userId,
+            @Param("status") OrderStatus status,
+            @Param("productDetailId") int productDetailId);
 
 
 }

@@ -1,4 +1,4 @@
-package com.example.shopapp_api.dtos.responses.order;
+package com.example.shopapp_api.dtos.responses.review;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,8 +11,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class OrderListResponse {
-    private List<OrderResponse> orderResponseList; // truyền list
+public class ReviewListResponse {
+    private List<ReviewResponse> reviewResponseList; // truyền list
     private int totalPages;
     private long totalRecords;
 }

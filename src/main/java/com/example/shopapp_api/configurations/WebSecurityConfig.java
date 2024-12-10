@@ -126,6 +126,15 @@ public class WebSecurityConfig {
                             .requestMatchers(DELETE, String.format("%s/carts/**", apiPrefix)).hasRole(Role.USER)
                             .requestMatchers(PUT, String.format("%s/carts/**", apiPrefix)).hasRole(Role.USER)
 
+                            //reviews
+                            .requestMatchers(POST, String.format("%s/reviews/**", apiPrefix)).permitAll()
+                            .requestMatchers(GET, String.format("%s/reviews/**", apiPrefix)).permitAll()
+                            .requestMatchers(DELETE, String.format("%s/reviews/**", apiPrefix)).hasRole(Role.ADMIN)
+                            .requestMatchers(PUT, String.format("%s/reviews/**", apiPrefix)).permitAll()
+
+                            //replies
+                            .requestMatchers(POST, String.format("%s/replies/**", apiPrefix)).hasRole(Role.ADMIN)
+
                             //upload ảnh hiển thị
                             .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
 

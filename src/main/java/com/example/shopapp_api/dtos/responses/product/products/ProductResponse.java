@@ -1,7 +1,6 @@
-package com.example.shopapp_api.dtos.responses.product;
+package com.example.shopapp_api.dtos.responses.product.products;
 
 import com.example.shopapp_api.dtos.responses.BaseResponse;
-import com.example.shopapp_api.entities.categories.Category;
 import com.example.shopapp_api.entities.products.Product;
 import com.example.shopapp_api.entities.products.ProductDetail;
 import com.example.shopapp_api.entities.products.ProductImage;
@@ -46,18 +45,9 @@ public class ProductResponse extends BaseResponse {
     @JsonProperty("product_images")
     private List<ProductImage> productImages;
 
-    private Category category;
-
-//    @JsonProperty("color_id")
-//    private int colorId;
-//
-//    @JsonProperty("size_id")
-//    private int sizeId;
-//
-//
-//    @JsonProperty("sku_version")
-//    private String skuVersion;
-
+    //    private Category category;
+    @JsonProperty("category")
+    private String category;
 
     //nếu không mapping thì trả về theo kiểu thủ công tạo formProduct
     public static ProductResponse formProduct(Product product) {
@@ -66,13 +56,13 @@ public class ProductResponse extends BaseResponse {
                 .name(product.getName())
                 .sku(product.getSku())
                 .description(product.getDescription())
+                .category(product.getSubCategory().getCategory().getName())
                 .subCategoryId(product.getSubCategory().getId())
                 .subCategoryName(product.getSubCategory().getName())
                 .materialId(product.getMaterial().getId())
                 .materialName(product.getMaterial().getName())
                 .productDetails(product.getProductDetails())
                 .productImages(product.getProductImages())
-                .category(product.getSubCategory().getCategory())
                 .build();
         productResponse.setCreatedAt(product.getCreatedAt());
         productResponse.setUpdatedAt(product.getUpdatedAt());

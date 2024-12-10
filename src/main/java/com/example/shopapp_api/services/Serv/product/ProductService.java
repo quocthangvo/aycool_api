@@ -2,9 +2,9 @@ package com.example.shopapp_api.services.Serv.product;
 
 import com.example.shopapp_api.dtos.requests.product.ProductDTO;
 import com.example.shopapp_api.dtos.requests.product.ProductImageDTO;
-import com.example.shopapp_api.dtos.responses.product.ProductImageResponse;
-import com.example.shopapp_api.dtos.responses.product.ProductResponse;
-import com.example.shopapp_api.dtos.responses.product.ProductSelectResponse;
+import com.example.shopapp_api.dtos.responses.product.products.ProductImageResponse;
+import com.example.shopapp_api.dtos.responses.product.products.ProductResponse;
+import com.example.shopapp_api.dtos.responses.product.products.ProductSelectResponse;
 import com.example.shopapp_api.entities.attributes.Color;
 import com.example.shopapp_api.entities.attributes.Material;
 import com.example.shopapp_api.entities.attributes.Size;
@@ -26,12 +26,11 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -247,5 +246,57 @@ public class ProductService implements IProductService {
                 .searchByNameAndMaterial(name, materialId, pageRequest)
                 .map(ProductResponse::formProduct); // Chuyển đổi từ Product sang ProductResponse
     }
+
+    @Override
+    public Page<ProductResponse> getProductsByCategory(int categoryId, Pageable pageable) {
+        // Fetch paginated products by category
+        Page<Product> productsPage = productRepository.findBySubCategoryCategoryId(categoryId, pageable);
+
+        // Convert the Page<Product> into Page<ProductResponse>
+        return productsPage.map(ProductResponse::formProduct);
+    }
+
+
+    @Override
+// Lấy danh sách sản phẩm theo subcategory với phân trang
+    public Page<ProductResponse> getProductsBySubCategory(int subCategoryId,
+                                                          Integer colorId,
+                                                          List<Integer> sizeIds,
+                                                          List<Integer> materialIds,
+                                                          Pageable pageable) {
+        // Gọi phương thức từ ProductRepository với các tham số lọc
+        Page<Product> products = productRepository
+                .findProductsByFilters(subCategoryId, colorId, sizeIds, materialIds, pageable);
+
+        // Chuyển đổi Page<Product> thành Page<ProductResponse>
+        return products.map(ProductResponse::formProduct);
+    }
+
+
+    @Override
+    public Page<ProductResponse> searchProductsByNameAndSubCategory(String name, Integer subCategoryId, Pageable pageable) {
+        Page<Product> productPage;
+
+        // Kiểm tra nếu có cả tên và subCategoryId
+        if (name != null && subCategoryId != null) {
+            productPage = productRepository.findByNameContainingAndSubCategoryId(name, subCategoryId, pageable);
+        }
+        // Kiểm tra nếu chỉ có tên
+        else if (name != null) {
+            productPage = productRepository.findByNameContaining(name, pageable);
+        }
+        // Kiểm tra nếu chỉ có subCategoryId
+        else if (subCategoryId != null) {
+            productPage = productRepository.findBySubCategoryId(subCategoryId, pageable);
+        }
+        // Nếu không có điều kiện lọc nào, lấy tất cả sản phẩm với sắp xếp
+        else {
+            productPage = productRepository.findAll(pageable);
+        }
+
+        // Chuyển từ Page<Product> sang Page<ProductResponse>
+        return productPage.map(ProductResponse::formProduct);
+    }
+
 
 }

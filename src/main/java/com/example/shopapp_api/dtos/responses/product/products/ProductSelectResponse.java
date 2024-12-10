@@ -1,4 +1,4 @@
-package com.example.shopapp_api.dtos.responses.product;
+package com.example.shopapp_api.dtos.responses.product.products;
 
 import com.example.shopapp_api.entities.products.Product;
 import com.example.shopapp_api.entities.products.ProductDetail;

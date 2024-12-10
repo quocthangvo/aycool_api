@@ -1,18 +1,12 @@
 package com.example.shopapp_api.controllers.prices;
 
 import com.example.shopapp_api.dtos.requests.price.PriceDTO;
-import com.example.shopapp_api.dtos.requests.product.ProductDetailDTO;
-import com.example.shopapp_api.dtos.requests.product.UpdateProductDetailDTO;
 import com.example.shopapp_api.dtos.responses.apiResponse.ApiResponse;
 import com.example.shopapp_api.dtos.responses.apiResponse.MessageResponse;
 import com.example.shopapp_api.dtos.responses.price.PriceListResponse;
 import com.example.shopapp_api.dtos.responses.price.PriceResponse;
-import com.example.shopapp_api.dtos.responses.product.ProductListResponse;
-import com.example.shopapp_api.dtos.responses.product.ProductResponse;
 import com.example.shopapp_api.entities.prices.Price;
-import com.example.shopapp_api.entities.products.ProductDetail;
 import com.example.shopapp_api.exceptions.DataNotFoundException;
-import com.example.shopapp_api.repositories.price.PriceRepository;
 import com.example.shopapp_api.services.Impl.price.IPriceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

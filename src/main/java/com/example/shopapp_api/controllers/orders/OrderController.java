@@ -7,8 +7,6 @@ import com.example.shopapp_api.dtos.responses.apiResponse.MessageResponse;
 import com.example.shopapp_api.dtos.responses.order.OrderListResponse;
 import com.example.shopapp_api.dtos.responses.order.OrderResponse;
 import com.example.shopapp_api.dtos.responses.order.StatusResponse;
-import com.example.shopapp_api.dtos.responses.product.ProductListResponse;
-import com.example.shopapp_api.dtos.responses.product.ProductResponse;
 import com.example.shopapp_api.entities.orders.OrderStatus;
 import com.example.shopapp_api.services.Impl.order.IOrderService;
 import jakarta.validation.Valid;

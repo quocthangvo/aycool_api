@@ -1,8 +1,6 @@
 package com.example.shopapp_api.dtos.responses.cart;
 
 
-import com.example.shopapp_api.dtos.responses.product.ProductDetailResponse;
-import com.example.shopapp_api.dtos.responses.product.ProductImageResponse;
 import com.example.shopapp_api.entities.cart.CartItem;
 import com.example.shopapp_api.entities.products.ProductDetail;
 import com.example.shopapp_api.entities.products.ProductImage;

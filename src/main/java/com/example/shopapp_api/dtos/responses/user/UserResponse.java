@@ -1,17 +1,12 @@
 package com.example.shopapp_api.dtos.responses.user;
 
-import com.example.shopapp_api.dtos.responses.product.ProductResponse;
-import com.example.shopapp_api.entities.products.Product;
 import com.example.shopapp_api.entities.users.Role;
-import com.example.shopapp_api.entities.users.Token;
 import com.example.shopapp_api.entities.users.User;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.util.Date;
-import java.util.List;
 
 
 @Getter

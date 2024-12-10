@@ -44,11 +44,17 @@ public class Order extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
-//    @Column(name = "shipping_method")
-//    private String shippingMethod;
-
     @Column(name = "shipping_date")
     private LocalDateTime shippingDate;
+
+    @Column(name = "processing_date")
+    private LocalDateTime processingDate;
+
+    @Column(name = "delivered_date")
+    private LocalDateTime deliveredDate;
+
+    @Column(name = "cancelled_date")
+    private LocalDateTime cancelledDate;
 
     @Column(name = "payment_method")
     private String paymentMethod;
@@ -62,4 +68,9 @@ public class Order extends BaseEntity {
     @OneToMany(mappedBy = "order")
     @JsonManagedReference
     private List<OrderDetail> orderDetails;
+
+    @Column(name = "payment_status")
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus paymentStatus;
+
 }

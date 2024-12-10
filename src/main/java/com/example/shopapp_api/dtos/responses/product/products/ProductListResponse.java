@@ -1,4 +1,4 @@
-package com.example.shopapp_api.dtos.responses.product;
+package com.example.shopapp_api.dtos.responses.product.products;
 
 import lombok.*;
 

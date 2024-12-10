@@ -3,7 +3,6 @@ package com.example.shopapp_api.services.Serv.product;
 import com.example.shopapp_api.dtos.requests.product.ProductDetailDTO;
 import com.example.shopapp_api.dtos.requests.product.UpdateProductDetailDTO;
 import com.example.shopapp_api.dtos.responses.product.ProductDetailResponse;
-import com.example.shopapp_api.dtos.responses.product.ProductResponse;
 import com.example.shopapp_api.entities.attributes.Color;
 import com.example.shopapp_api.entities.attributes.Size;
 import com.example.shopapp_api.entities.products.Product;

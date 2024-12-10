@@ -1,16 +1,9 @@
 package com.example.shopapp_api.dtos.responses.cart;
 
-import com.example.shopapp_api.dtos.responses.product.ProductResponse;
 import com.example.shopapp_api.entities.cart.Cart;
-import com.example.shopapp_api.entities.cart.CartItem;
-import com.example.shopapp_api.entities.products.Product;
-import com.example.shopapp_api.entities.users.User;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter

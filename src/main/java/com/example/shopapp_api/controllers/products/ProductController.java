@@ -4,10 +4,9 @@ import com.example.shopapp_api.dtos.requests.product.ProductDTO;
 import com.example.shopapp_api.dtos.requests.product.ProductImageDTO;
 import com.example.shopapp_api.dtos.responses.apiResponse.ApiResponse;
 import com.example.shopapp_api.dtos.responses.apiResponse.MessageResponse;
-import com.example.shopapp_api.dtos.responses.product.ProductImageResponse;
-import com.example.shopapp_api.dtos.responses.product.ProductListResponse;
-import com.example.shopapp_api.dtos.responses.product.ProductResponse;
-import com.example.shopapp_api.dtos.responses.product.ProductSelectResponse;
+import com.example.shopapp_api.dtos.responses.product.products.ProductImageResponse;
+import com.example.shopapp_api.dtos.responses.product.products.ProductListResponse;
+import com.example.shopapp_api.dtos.responses.product.products.ProductResponse;
 import com.example.shopapp_api.entities.products.Product;
 import com.example.shopapp_api.entities.products.ProductImage;
 import com.example.shopapp_api.exceptions.DataNotFoundException;
@@ -19,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 
@@ -308,5 +308,90 @@ public class ProductController {
         ApiResponse<ProductListResponse> response = new ApiResponse<>("Thành công", productListResponse);
         return ResponseEntity.ok(response);
     }
+
+    // API để lấy sản phẩm theo category
+    @GetMapping("/category/{categoryId}")
+    public ResponseEntity<ApiResponse<ProductListResponse>> getProductsByCategory(
+            @PathVariable int categoryId,
+            @RequestParam("page") int page,          // Mặc định là trang đầu tiên
+            @RequestParam("limit") int limit) {  // Số lượng sản phẩm mỗi trang, mặc định là 10
+
+
+        Sort sort = Sort.by("createdAt").descending();
+        // Tạo Pageable từ tham số page và size
+        Pageable pageable = PageRequest.of(page, limit, sort);
+
+        Page<ProductResponse> productPage = productService.getProductsByCategory(categoryId, pageable);
+
+        int totalPages = productPage.getTotalPages();
+        long totalRecords = productPage.getTotalElements();
+        List<ProductResponse> productList = productPage.getContent();
+
+        ProductListResponse productListResponse = ProductListResponse.builder()
+                .productResponseList(productList)
+                .totalPages(totalPages)
+                .totalRecords(totalRecords)
+                .build();
+
+        ApiResponse<ProductListResponse> response = new ApiResponse<>("Thành công", productListResponse);
+        return ResponseEntity.ok(response);
+    }
+
+
+    // API để lấy sản phẩm theo subcategory
+    @GetMapping("/sub_category/{subCategoryId}")
+    public ResponseEntity<ApiResponse<ProductListResponse>> getProductsBySubCategory(
+            @PathVariable int subCategoryId,
+            @RequestParam(value = "color_id", required = false) Integer colorId,
+            @RequestParam(value = "size_ids", required = false) List<Integer> sizeIds,
+            @RequestParam(value = "material_ids", required = false) List<Integer> materialIds,
+            @RequestParam("page") int page,          // Mặc định là trang đầu tiên
+            @RequestParam("limit") int limit) {
+
+        Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").descending());
+        Page<ProductResponse> productPage = productService
+                .getProductsBySubCategory(subCategoryId, colorId, sizeIds, materialIds, pageable);
+
+
+        int totalPages = productPage.getTotalPages();    // Tổng số trang
+        long totalRecords = productPage.getTotalElements(); // Tổng số bản ghi
+        List<ProductResponse> productList = productPage.getContent(); // Danh sách sản phẩm
+
+
+        // Tạo ProductListResponse để trả về
+        ProductListResponse productListResponse = ProductListResponse.builder()
+                .productResponseList(productList)
+                .totalPages(totalPages)
+                .totalRecords(totalRecords)
+                .build();
+        ApiResponse<ProductListResponse> response = new ApiResponse<>("Thành công", productListResponse);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<ProductListResponse>> searchProducts(
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "sub_category_id", required = false) Integer subCategoryId,
+            @RequestParam("page") int page,
+            @RequestParam("limit") int limit) {
+
+
+        Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").descending());
+        Page<ProductResponse> productPage = productService.searchProductsByNameAndSubCategory(name, subCategoryId, pageable);
+
+        int totalPages = productPage.getTotalPages();
+        long totalRecords = productPage.getTotalElements();
+        List<ProductResponse> productList = productPage.getContent();
+
+        ProductListResponse productListResponse = ProductListResponse.builder()
+                .productResponseList(productList)
+                .totalPages(totalPages)
+                .totalRecords(totalRecords)
+                .build();
+
+        ApiResponse<ProductListResponse> response = new ApiResponse<>("Thành công", productListResponse);
+        return ResponseEntity.ok(response);
+    }
+
 
 }

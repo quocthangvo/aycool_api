@@ -1,22 +1,14 @@
 package com.example.shopapp_api.services.Serv.order;
 
 import com.example.shopapp_api.dtos.requests.order.OrderDTO;
-import com.example.shopapp_api.dtos.requests.order.OrderDetailDTO;
 import com.example.shopapp_api.dtos.requests.order.OrderStatusDTO;
 import com.example.shopapp_api.dtos.responses.order.OrderResponse;
 import com.example.shopapp_api.dtos.responses.order.StatusResponse;
-import com.example.shopapp_api.dtos.responses.price.PriceResponse;
-import com.example.shopapp_api.dtos.responses.product.ProductDetailResponse;
-import com.example.shopapp_api.dtos.responses.product.ProductResponse;
 import com.example.shopapp_api.entities.cart.Cart;
 import com.example.shopapp_api.entities.cart.CartItem;
-import com.example.shopapp_api.entities.orders.Address;
-import com.example.shopapp_api.entities.orders.Order;
-import com.example.shopapp_api.entities.orders.OrderDetail;
-import com.example.shopapp_api.entities.orders.OrderStatus;
+import com.example.shopapp_api.entities.orders.*;
 import com.example.shopapp_api.entities.prices.Price;
 import com.example.shopapp_api.entities.products.ProductDetail;
-import com.example.shopapp_api.entities.users.User;
 import com.example.shopapp_api.exceptions.DataNotFoundException;
 import com.example.shopapp_api.repositories.cart.CartRepository;
 import com.example.shopapp_api.repositories.order.OrderDetailRepository;
@@ -31,13 +23,10 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -151,13 +140,16 @@ public class OrderService implements IOrderService {
 
     @Override
     public OrderResponse getOrderById(int id) throws DataNotFoundException {
+        // Lấy order từ database hoặc throw exception
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy sản phẩm với id: " + id));
-        // Kiểm tra và gán trạng thái nếu cần thiết
-        if (order.getStatus() == null) {
-            throw new DataNotFoundException("Trạng thái đơn hàng không hợp lệ.");
-        }
-        return modelMapper.map(order, OrderResponse.class);
+                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy đơn hàng với id: " + id));
+
+        // Kiểm tra trạng thái đơn hàng
+        Optional.ofNullable(order.getStatus())
+                .orElseThrow(() -> new DataNotFoundException("Trạng thái đơn hàng không hợp lệ."));
+
+        // Trả về OrderResponse
+        return OrderResponse.formOrder(order);
     }
 
 
@@ -177,10 +169,10 @@ public class OrderService implements IOrderService {
 //        }
         if (status != null && !status.isEmpty()) {
             // Nếu trạng thái được cung cấp, lọc theo trạng thái
-            orders = orderRepository.findByUserIdAndStatus(userId, OrderStatus.valueOf(status));
+            orders = orderRepository.findByUserIdAndStatusOrderByCreatedAtDesc(userId, OrderStatus.valueOf(status));
         } else {
             // Nếu không có trạng thái, lấy tất cả đơn hàng của người dùng
-            orders = orderRepository.findByUserId(userId);
+            orders = orderRepository.findByUserIdOrderByCreatedAtDesc(userId);
         }
 
 
@@ -275,6 +267,29 @@ public class OrderService implements IOrderService {
             }
 
             existingOrder.setStatus(newStatus);
+//            // Kiểm tra nếu trạng thái mới là "Đã giao hàng" (DELIVERED), thì cập nhật trạng thái thanh toán là "PAID"
+//            if (newStatus == OrderStatus.DELIVERED) {
+//                existingOrder.setPaymentStatus(PaymentStatus.PAID);
+//            }
+            // Cập nhật ngày tương ứng với trạng thái mới
+            LocalDateTime now = LocalDateTime.now();
+            switch (newStatus) {
+                case PROCESSING:
+                    existingOrder.setProcessingDate(now);
+                    break;
+                case SHIPPED:
+                    existingOrder.setShippingDate(now);
+                    break;
+                case DELIVERED:
+                    existingOrder.setDeliveredDate(now);
+                    existingOrder.setPaymentStatus(PaymentStatus.PAID); // Nếu đã giao hàng, cập nhật thanh toán là "Đã thanh toán"
+                    break;
+                case CANCELLED:
+                    existingOrder.setCancelledDate(now);
+                    break;
+                default:
+                    break;
+            }
         }
 
         // Lưu đơn hàng đã cập nhật
@@ -408,6 +423,14 @@ public class OrderService implements IOrderService {
         order.setPaymentMethod(orderDTO.getPaymentMethod());
         order.setShippingDate(orderDTO.getShippingDate());
         order.setNote(orderDTO.getNote());
+
+        // Kiểm tra phương thức thanh toán và cập nhật paymentStatus
+        if ("COD".equalsIgnoreCase(orderDTO.getPaymentMethod())) {
+            order.setPaymentStatus(PaymentStatus.NOPAYMENT);  // Đặt trạng thái thanh toán là NOPAYMENT nếu là COD
+        } else {
+            order.setPaymentStatus(PaymentStatus.PAID);  // Có thể cập nhật cho các phương thức thanh toán khác
+        }
+
         orderRepository.save(order);
 
         // Kiểm tra ngày giao hàng

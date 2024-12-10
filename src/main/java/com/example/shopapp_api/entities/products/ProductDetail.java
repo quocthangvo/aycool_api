@@ -4,6 +4,7 @@ import com.example.shopapp_api.entities.attributes.Color;
 import com.example.shopapp_api.entities.attributes.Size;
 import com.example.shopapp_api.entities.cart.CartItem;
 import com.example.shopapp_api.entities.prices.Price;
+import com.example.shopapp_api.entities.review.Review;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -50,6 +51,9 @@ public class ProductDetail {
     @JsonManagedReference
     private List<Price> prices;
 
+    @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<Review> reviews;
 //    //cart
 //    @OneToMany(mappedBy = "productDetail")
 //    @JsonManagedReference

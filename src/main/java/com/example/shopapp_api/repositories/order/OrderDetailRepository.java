@@ -15,4 +15,7 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Intege
     List<OrderDetail> findByOrderId(int orderId);
 
     OrderDetail findByOrderAndProductDetail(Order order, ProductDetail productDetail);
+
+    // Kiểm tra sản phẩm có trong đơn hàng hay không
+    boolean existsByOrderIdAndProductDetail_Id(Long orderId, Long productDetailId);
 }

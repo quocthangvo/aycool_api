@@ -1,18 +1,11 @@
 package com.example.shopapp_api.dtos.responses.order;
 
 import com.example.shopapp_api.dtos.responses.BaseResponse;
-import com.example.shopapp_api.dtos.responses.product.ProductResponse;
-import com.example.shopapp_api.entities.orders.Order;
-import com.example.shopapp_api.entities.orders.OrderDetail;
-import com.example.shopapp_api.entities.orders.OrderStatus;
-import com.example.shopapp_api.entities.products.Product;
-import com.example.shopapp_api.entities.products.ProductImage;
+import com.example.shopapp_api.entities.orders.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
-import org.springframework.cglib.core.Local;
 
 import java.text.DecimalFormat;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,9 +26,9 @@ public class OrderResponse extends BaseResponse {
 
     @JsonProperty("order_code")
     private String orderCode;
-
-    @JsonProperty("address_id")
-    private int addressId;
+//
+//    @JsonProperty("address_id")
+//    private int addressId;
 
     private String note;
 
@@ -48,13 +41,17 @@ public class OrderResponse extends BaseResponse {
     private String totalMoney;
 
 
-//    @JsonProperty("shipping_method")
-//    private String shippingMethod;
-
+    @JsonProperty("processing_date")
+    private String processingDate;
 
     @JsonProperty("shipping_date")
-    private LocalDateTime shippingDate;
+    private String shippingDate;
 
+    @JsonProperty("delivered_date")
+    private String deliveredDate;
+
+    @JsonProperty("cancelled_date")
+    private String cancelledDate;
 
     @JsonProperty("payment_method")
     private String paymentMethod;
@@ -67,25 +64,51 @@ public class OrderResponse extends BaseResponse {
     @JsonProperty("order_details")
     private List<OrderDetailResponse> orderDetails;
 
+    @JsonProperty("payment_status")
+    private PaymentStatus paymentStatus;
+
+    @JsonProperty("status_display_payment")
+    private String statusDisplayPayment;
+
+    @JsonProperty("address")
+    private Address address;
+
 
     public static OrderResponse formOrder(Order order) {
         DecimalFormat formatter = new DecimalFormat("#,###");
         String formattedTotalMoney = formatter.format(order.getTotalMoney());
 
-        // Định dạng ngày tháng năm giờ phút mà không có giây
-        DateTimeFormatter formatterDate = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        // Định dạng ngày tháng năm giờ phút theo mẫu "dd-MM-yyyy HH:mm"
+        DateTimeFormatter formatterDate = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
         String formattedOrderDate = order.getOrderDate().format(formatterDate);
 
-        // Kiểm tra nếu shippingDate là null trước khi trả về LocalDateTime
-        LocalDateTime shippingDate = order.getShippingDate();
-        if (shippingDate == null) {
-            shippingDate = LocalDateTime.now();  // Hoặc có thể đặt giá trị mặc định khác
-        }
+        // Chuyển đổi các ngày trạng thái sang định dạng mong muốn
+        String formattedProcessingDate = (order.getProcessingDate() != null)
+                ? order.getProcessingDate().format(formatterDate)
+                : null;
+
+        String formattedShippingDate = (order.getShippingDate() != null)
+                ? order.getShippingDate().format(formatterDate)
+                : null;
+
+        String formattedDeliveredDate = (order.getDeliveredDate() != null)
+                ? order.getDeliveredDate().format(formatterDate)
+                : null;
+
+        String formattedCancelledDate = (order.getCancelledDate() != null)
+                ? order.getCancelledDate().format(formatterDate)
+                : null;
 
         // Chuyển đổi danh sách orderDetails thành OrderDetailResponse
         List<OrderDetailResponse> orderDetailResponses = order.getOrderDetails().stream()
                 .map(OrderDetailResponse::formOrderDetail)
                 .collect(Collectors.toList());
+
+
+        if (order.getPaymentStatus() == null) {
+            // Nếu paymentStatus là null, gán giá trị mặc định
+            order.setPaymentStatus(PaymentStatus.NOPAYMENT); // Hoặc giá trị mặc định khác
+        }
 
         // Tạo đối tượng OrderResponse
         OrderResponse orderResponse = OrderResponse.builder()
@@ -98,9 +121,14 @@ public class OrderResponse extends BaseResponse {
                 .active(order.getActive())
                 .status(order.getStatus())
                 .statusDisplayName(order.getStatus().getStatusDisplayName())
-                .shippingDate(shippingDate)  // Trả về LocalDateTime
+                .processingDate(formattedProcessingDate)
+                .shippingDate(formattedShippingDate)
+                .deliveredDate(formattedDeliveredDate)
+                .cancelledDate(formattedCancelledDate)
                 .orderDetails(orderDetailResponses)
-
+                .paymentStatus(order.getPaymentStatus())
+                .statusDisplayPayment(order.getPaymentStatus().getStatusDisplayPayment())
+                .address(order.getAddress())
                 .build();
 
         return orderResponse;

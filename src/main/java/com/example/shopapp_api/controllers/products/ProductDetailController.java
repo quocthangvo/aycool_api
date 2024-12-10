@@ -1,22 +1,15 @@
 package com.example.shopapp_api.controllers.products;
 
-import com.example.shopapp_api.dtos.requests.product.ProductDTO;
 import com.example.shopapp_api.dtos.requests.product.ProductDetailDTO;
 import com.example.shopapp_api.dtos.requests.product.UpdateProductDetailDTO;
 import com.example.shopapp_api.dtos.responses.apiResponse.ApiResponse;
 import com.example.shopapp_api.dtos.responses.apiResponse.MessageResponse;
 import com.example.shopapp_api.dtos.responses.product.ProductDetailResponse;
-import com.example.shopapp_api.dtos.responses.product.ProductListResponse;
-import com.example.shopapp_api.dtos.responses.product.ProductResponse;
-import com.example.shopapp_api.entities.products.Product;
 import com.example.shopapp_api.entities.products.ProductDetail;
 import com.example.shopapp_api.exceptions.DataNotFoundException;
 import com.example.shopapp_api.services.Impl.product.IProductDetailService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
