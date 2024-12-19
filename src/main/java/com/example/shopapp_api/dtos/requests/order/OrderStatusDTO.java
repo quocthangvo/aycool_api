@@ -1,6 +1,6 @@
 package com.example.shopapp_api.dtos.requests.order;
 
-import com.example.shopapp_api.entities.orders.OrderStatus;
+import com.example.shopapp_api.entities.orders.status.OrderStatus;
 import lombok.*;
 
 @Data

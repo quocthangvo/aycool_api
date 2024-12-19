@@ -14,13 +14,14 @@ import java.util.Optional;
 public interface ReviewRepository extends JpaRepository<Review, Integer> {
 
 
-    Page<Review> findByProductDetailId(int productDetailId, Pageable pageable);
+    Page<Review> findByProductId(int productId, Pageable pageable);
 
-    List<Review> findByProductDetailId(int productDetailId);
+    List<Review> findByProductId(int productId);
 
-    //kt đã dánh giá chưa
-    Optional<Review> findByUserIdAndProductDetailId(int userId, int productDetailId);
+    boolean existsByOrderIdAndProductIdAndUserId(int orderId, int productId, int userId);
 
-//    Optional<Review> findByUserIdAndOrderId(int userId, int orderId);
+    @Query("SELECT SUM(r.rating) FROM Review r WHERE r.product.id = :productId")
+    Long getTotalStarsByProductId(@Param("productId") int productId);
 
+    boolean existsByOrderIdAndUserId(Long orderId, Long userId);
 }

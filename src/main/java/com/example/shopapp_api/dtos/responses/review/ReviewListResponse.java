@@ -15,4 +15,5 @@ public class ReviewListResponse {
     private List<ReviewResponse> reviewResponseList; // truyền list
     private int totalPages;
     private long totalRecords;
+    private long totalStars;
 }

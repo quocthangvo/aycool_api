@@ -19,16 +19,16 @@ public class ReviewDTO {
     private String comment;
 
     @JsonProperty("rating")
-    private Float rating;
+    private Integer rating;
 
     @JsonProperty("user_id")
     private int userId;
 
     @JsonProperty("order_id")
-    private int order;
+    private int orderId;
 
-    @JsonProperty("product_detail_id")
-    private int productDetail;
+    @JsonProperty("product_id")
+    private int productId;
 
 //
 //    @JsonProperty("product_id")

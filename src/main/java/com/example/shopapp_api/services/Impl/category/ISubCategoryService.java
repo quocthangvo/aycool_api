@@ -1,6 +1,7 @@
 package com.example.shopapp_api.services.Impl.category;
 
 import com.example.shopapp_api.dtos.requests.category.SubCategoryDTO;
+import com.example.shopapp_api.dtos.responses.category.SubCategoryResponse;
 import com.example.shopapp_api.entities.categories.SubCategory;
 import com.example.shopapp_api.exceptions.DataNotFoundException;
 
@@ -11,8 +12,10 @@ public interface ISubCategoryService {
 
     SubCategory getSubCategoryById(int id) throws DataNotFoundException;
 
-    List<SubCategory> getAllSubCategory();
+//    List<SubCategory> getAllSubCategory();
 
+    List<SubCategoryResponse> getAllSubCategory();
+    
     List<SubCategory> getSubCategoryByCategoryId(int categoryId);
 
     void deleteSubCategory(int id);

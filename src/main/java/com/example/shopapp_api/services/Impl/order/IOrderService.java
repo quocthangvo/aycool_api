@@ -4,7 +4,7 @@ import com.example.shopapp_api.dtos.requests.order.OrderDTO;
 import com.example.shopapp_api.dtos.requests.order.OrderStatusDTO;
 import com.example.shopapp_api.dtos.responses.order.OrderResponse;
 import com.example.shopapp_api.dtos.responses.order.StatusResponse;
-import com.example.shopapp_api.entities.orders.OrderStatus;
+import com.example.shopapp_api.entities.orders.status.OrderStatus;
 import com.example.shopapp_api.exceptions.DataNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

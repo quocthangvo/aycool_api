@@ -32,7 +32,7 @@ public class Review extends BaseEntity {
     private String comment;
 
     @JoinColumn(name = "rating")
-    private Float rating;
+    private int rating;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -40,17 +40,17 @@ public class Review extends BaseEntity {
 
     @ManyToOne
     @JsonBackReference
-    @JoinColumn(name = "product_detail_id")
-    private ProductDetail productDetail;
+    @JoinColumn(name = "product_id")
+    private Product product;
 
     @ManyToOne
     @JoinColumn(name = "order_id")
     @JsonBackReference
     private Order order;
-
-    @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
-    private List<Reply> replies = new ArrayList<>();
+//
+//    @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
+//    @JsonManagedReference
+//    private List<Reply> replies = new ArrayList<>();
 
 //    @ManyToOne
 //    @JoinColumn(name = "order_detail_id")

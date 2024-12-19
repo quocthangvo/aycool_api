@@ -1,6 +1,7 @@
 package com.example.shopapp_api.services.Serv.category;
 
 import com.example.shopapp_api.dtos.requests.category.SubCategoryDTO;
+import com.example.shopapp_api.dtos.responses.category.SubCategoryResponse;
 import com.example.shopapp_api.entities.categories.Category;
 import com.example.shopapp_api.entities.categories.SubCategory;
 import com.example.shopapp_api.exceptions.DataNotFoundException;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -42,8 +44,16 @@ public class SubCategoryService implements ISubCategoryService {
     }
 
     @Override
-    public List<SubCategory> getAllSubCategory() {
-        return subCategoryRepository.findAll();
+    public List<SubCategoryResponse> getAllSubCategory() {
+
+//        return subCategoryRepository.findAll();
+        // Lấy danh sách tất cả SubCategory
+        List<SubCategory> subCategories = subCategoryRepository.findAll();
+
+        // Chuyển đổi SubCategory thành SubCategoryResponse
+        return subCategories.stream()
+                .map(SubCategoryResponse::formSubCategory)
+                .collect(Collectors.toList());
     }
 
     @Override

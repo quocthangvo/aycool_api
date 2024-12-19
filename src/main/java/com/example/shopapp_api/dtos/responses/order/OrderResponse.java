@@ -2,6 +2,9 @@ package com.example.shopapp_api.dtos.responses.order;
 
 import com.example.shopapp_api.dtos.responses.BaseResponse;
 import com.example.shopapp_api.entities.orders.*;
+import com.example.shopapp_api.entities.orders.status.OrderStatus;
+import com.example.shopapp_api.entities.orders.status.PaymentMethod;
+import com.example.shopapp_api.entities.orders.status.PaymentStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
@@ -54,7 +57,10 @@ public class OrderResponse extends BaseResponse {
     private String cancelledDate;
 
     @JsonProperty("payment_method")
-    private String paymentMethod;
+    private PaymentMethod paymentMethod;
+
+    @JsonProperty("display_payment_method")
+    private String displayPaymentMethod;
 
     @JsonProperty("active")
     private Boolean active;
@@ -120,6 +126,8 @@ public class OrderResponse extends BaseResponse {
                 .totalMoney(formattedTotalMoney)
                 .active(order.getActive())
                 .status(order.getStatus())
+                .paymentMethod(order.getPaymentMethod())
+                .displayPaymentMethod(order.getPaymentMethod().getDisplayPaymentMethod())
                 .statusDisplayName(order.getStatus().getStatusDisplayName())
                 .processingDate(formattedProcessingDate)
                 .shippingDate(formattedShippingDate)

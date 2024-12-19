@@ -1,15 +1,13 @@
 package com.example.shopapp_api.repositories.order;
 
 import com.example.shopapp_api.entities.orders.Order;
-import com.example.shopapp_api.entities.orders.OrderStatus;
+import com.example.shopapp_api.entities.orders.status.OrderStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -49,4 +47,5 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             @Param("productDetailId") int productDetailId);
 
 
+    Optional<Order> findById(int id);
 }

@@ -1,13 +1,14 @@
 package com.example.shopapp_api.entities.orders;
 
-import com.example.shopapp_api.dtos.responses.BaseResponse;
 import com.example.shopapp_api.entities.BaseEntity;
+import com.example.shopapp_api.entities.orders.status.OrderStatus;
+import com.example.shopapp_api.entities.orders.status.PaymentMethod;
+import com.example.shopapp_api.entities.orders.status.PaymentStatus;
 import com.example.shopapp_api.entities.users.User;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -57,7 +58,8 @@ public class Order extends BaseEntity {
     private LocalDateTime cancelledDate;
 
     @Column(name = "payment_method")
-    private String paymentMethod;
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
 
     @Column(name = "total_money")
     private Float totalMoney;

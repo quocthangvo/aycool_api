@@ -25,40 +25,18 @@ import java.util.List;
 public class ReviewController {
     private final IReviewService reviewService;
 
-//    @PostMapping("/create")
-//    public ResponseEntity<?> createReview(
-//            @Valid @RequestBody ReviewDTO reviewDTO,
-//            @RequestParam int userId,
-//            @RequestParam int productDetailId,
-//            @RequestParam int orderId,
-//            BindingResult result) {
-//
-//        try {
-//            if (result.hasErrors()) { //kt tích hop data có lỗi k
-//                List<String> errorMessage = result.getFieldErrors()//trả về ds doi tuong FieldError
-//                        .stream()// chuyen FieldError thành stream cho phép xu ly chuoi thao tac
-//                        .map(FieldError::getDefaultMessage) //chuyển FieldError thành chuỗi thông báo lỗi (message).
-//                        .toList();//Stream thành danh sách các chuỗi thông báo lỗi
-//                return ResponseEntity.badRequest().body(errorMessage);
-//            }// xử lý validation
-//
-//            Review newReview = reviewService.createReview(userId, productDetailId, orderId, reviewDTO);
-//            return ResponseEntity.ok(new ApiResponse<>("Thành công", newReview));
-//
-//        } catch (Exception e) {
-//            return ResponseEntity.badRequest().body(new ApiResponse<>("Lỗi: " + e.getMessage(), null));
-//
-//        }
-//    }
 
-    @GetMapping("/product_detail/{productDetailId}")
+    @GetMapping("/product/{productId}")
     public ResponseEntity<ApiResponse<ReviewListResponse>> getReviewsForProductDetail(
-            @PathVariable int productDetailId,
+            @PathVariable int productId,
             @RequestParam int page,
             @RequestParam int limit) {
         try {
             // Gọi service để lấy danh sách đánh giá phân trang
-            Page<ReviewResponse> reviewsPage = reviewService.getReviewsForProductDetail(productDetailId, page, limit);
+            Page<ReviewResponse> reviewsPage = reviewService.getReviewsForProduct(productId, page, limit);
+
+            // Lấy tổng số sao từ service
+            Long totalStars = reviewService.getTotalStars(productId);
 
             int totalPages = reviewsPage.getTotalPages();//lấy ra tổng số trang
             long totalRecords = reviewsPage.getTotalElements();
@@ -69,6 +47,7 @@ public class ReviewController {
                     .reviewResponseList(reviewList)
                     .totalPages(totalPages)
                     .totalRecords(totalRecords)
+                    .totalStars(totalStars != null ? totalStars : 0)
                     .build());
             return ResponseEntity.ok(new ApiResponse<>("Thành công", reviewListResponse));
 
@@ -101,34 +80,20 @@ public class ReviewController {
     }
 
 
-    @PostMapping("/create")
-    public ResponseEntity<?> createReview(
-            @Valid @RequestBody ReviewDTO reviewDTO,
-            BindingResult result) {
-
+    @PostMapping("")
+    public ResponseEntity<ApiResponse<?>> createReview(@RequestBody ReviewDTO reviewDTO) {
         try {
-            if (result.hasErrors()) { // Kiểm tra lỗi từ validation
-                List<String> errorMessage = result.getFieldErrors()
-                        .stream()
-                        .map(FieldError::getDefaultMessage)
-                        .toList();
-                return ResponseEntity.badRequest().body(errorMessage);
-            }
-
-            // Gọi service để tạo đánh giá
-            Review newReview = reviewService.createReview(
-                    reviewDTO.getUserId(),
-                    reviewDTO.getOrder(),
-                    reviewDTO.getProductDetail(),
+            Review review = reviewService.createReview(
                     reviewDTO
             );
-
-            return ResponseEntity.ok(new ApiResponse<>("Thành công", newReview));
-
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(new ApiResponse<>("Lỗi: " + e.getMessage(), null));
+            return ResponseEntity.ok(new ApiResponse<>("Thành công", review));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new ApiResponse<>(e.getMessage(), null));
         }
     }
 
-
+    @GetMapping("/hasReviewed/{orderId}/{userId}")
+    public boolean hasReviewed(@PathVariable Long orderId, @PathVariable Long userId) {
+        return reviewService.hasReviewed(orderId, userId);
+    }
 }

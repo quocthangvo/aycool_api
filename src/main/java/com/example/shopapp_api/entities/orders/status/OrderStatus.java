@@ -1,4 +1,4 @@
-package com.example.shopapp_api.entities.orders;
+package com.example.shopapp_api.entities.orders.status;
 
 
 public enum OrderStatus {

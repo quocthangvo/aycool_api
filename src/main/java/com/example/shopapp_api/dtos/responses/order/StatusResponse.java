@@ -1,7 +1,7 @@
 package com.example.shopapp_api.dtos.responses.order;
 
 import com.example.shopapp_api.entities.orders.Order;
-import com.example.shopapp_api.entities.orders.OrderStatus;
+import com.example.shopapp_api.entities.orders.status.OrderStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 

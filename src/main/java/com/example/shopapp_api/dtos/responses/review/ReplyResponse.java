@@ -36,7 +36,7 @@ public class ReplyResponse extends BaseResponse {
                 .content(reply.getContent())
                 .review(reply.getReview().getId())
                 .comment(reply.getReview().getComment())
-                .rating(reply.getReview().getRating())
+//                .rating(reply.getReview().getRating())
                 .user(reply.getUser().getId())
 
                 .build();

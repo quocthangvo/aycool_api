@@ -4,6 +4,7 @@ package com.example.shopapp_api.entities.products;
 import com.example.shopapp_api.entities.BaseEntity;
 import com.example.shopapp_api.entities.attributes.Material;
 import com.example.shopapp_api.entities.categories.SubCategory;
+import com.example.shopapp_api.entities.review.Review;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -49,6 +50,10 @@ public class Product extends BaseEntity {
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference //đánh dấu ở productImage là cha
     private List<ProductImage> productImages;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<Review> reviews;
 //    private List<MultipartFile> files;
     // fetch = FetchType.LAZY khi truy vấn product sẽ
     // không được tải cho đến khi bạn truy cập vào thuộc tính productImages

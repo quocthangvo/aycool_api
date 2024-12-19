@@ -29,6 +29,8 @@ public class OrderDetailResponse {
     @JsonProperty("total_money")
     private Float totalMoney;
 
+    @JsonProperty("product_id")
+    private int productId;
 
     @JsonProperty("product_name")
     private String productName;  // Thêm tên sản phẩm
@@ -54,6 +56,7 @@ public class OrderDetailResponse {
 //                .price(orderDetail.getPrice())
                 .quantity(orderDetail.getQuantity())
                 .totalMoney(orderDetail.getTotalMoney())
+                .productId(orderDetail.getProductDetail().getProduct().getId())
                 .productName(orderDetail.getProductDetail().getProduct().getName())
                 .sizeName(orderDetail.getProductDetail().getSize().getName())
                 .colorName(orderDetail.getProductDetail().getColor().getName())

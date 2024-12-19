@@ -1,13 +1,9 @@
 package com.example.shopapp_api.dtos.requests.order;
 
-import com.example.shopapp_api.entities.cart.CartItem;
-import com.example.shopapp_api.entities.orders.OrderStatus;
+import com.example.shopapp_api.entities.orders.status.OrderStatus;
+import com.example.shopapp_api.entities.orders.status.PaymentMethod;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -39,8 +35,6 @@ public class OrderDTO {
     @Min(value = 0, message = "Total money must be > 0")
     private float totalMoney;
 
-//    @JsonProperty("shipping_method")
-//    private String shippingMethod;
 
     @JsonProperty("order_date")
     private LocalDateTime OrderDate;
@@ -50,7 +44,8 @@ public class OrderDTO {
     private LocalDateTime shippingDate;
 
     @JsonProperty("payment_method")
-    private String paymentMethod;
+    private PaymentMethod paymentMethod;
+
 
     private OrderStatus status;
 
@@ -61,4 +56,13 @@ public class OrderDTO {
 
     @JsonProperty("selected_items")
     private List<Integer> selectedItems;
+
+    @JsonProperty("transaction_no")
+    private String transactionNo;
+
+    @JsonProperty("amount")
+    private String amount;
+
+    @JsonProperty("order_id")
+    private String orderId;
 }

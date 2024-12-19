@@ -7,6 +7,9 @@ import com.example.shopapp_api.dtos.responses.order.StatusResponse;
 import com.example.shopapp_api.entities.cart.Cart;
 import com.example.shopapp_api.entities.cart.CartItem;
 import com.example.shopapp_api.entities.orders.*;
+import com.example.shopapp_api.entities.orders.status.OrderStatus;
+import com.example.shopapp_api.entities.orders.status.PaymentMethod;
+import com.example.shopapp_api.entities.orders.status.PaymentStatus;
 import com.example.shopapp_api.entities.prices.Price;
 import com.example.shopapp_api.entities.products.ProductDetail;
 import com.example.shopapp_api.exceptions.DataNotFoundException;
@@ -425,10 +428,12 @@ public class OrderService implements IOrderService {
         order.setNote(orderDTO.getNote());
 
         // Kiểm tra phương thức thanh toán và cập nhật paymentStatus
-        if ("COD".equalsIgnoreCase(orderDTO.getPaymentMethod())) {
-            order.setPaymentStatus(PaymentStatus.NOPAYMENT);  // Đặt trạng thái thanh toán là NOPAYMENT nếu là COD
+        if (PaymentMethod.COD.equals(orderDTO.getPaymentMethod())) {
+            order.setPaymentStatus(PaymentStatus.NOPAYMENT);  // Nếu phương thức là COD, trạng thái thanh toán là NOPAYMENT
+        } else if (PaymentMethod.ONLINE_PAYMENT.equals(orderDTO.getPaymentMethod())) {
+            order.setPaymentStatus(PaymentStatus.PAID);  // Nếu phương thức là ONLINE, trạng thái thanh toán là PAID
         } else {
-            order.setPaymentStatus(PaymentStatus.PAID);  // Có thể cập nhật cho các phương thức thanh toán khác
+            throw new DataNotFoundException("Phương thức thanh toán không hợp lệ");
         }
 
         orderRepository.save(order);

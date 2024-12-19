@@ -4,12 +4,15 @@ import com.example.shopapp_api.dtos.responses.BaseResponse;
 import com.example.shopapp_api.dtos.responses.product.ProductDetailResponse;
 import com.example.shopapp_api.dtos.responses.product.products.ProductNameResponse;
 import com.example.shopapp_api.entities.orders.Order;
+import com.example.shopapp_api.entities.orders.OrderDetail;
 import com.example.shopapp_api.entities.products.Product;
 import com.example.shopapp_api.entities.products.ProductDetail;
 import com.example.shopapp_api.entities.review.Review;
 import com.example.shopapp_api.entities.users.User;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -24,10 +27,16 @@ public class ReviewResponse extends BaseResponse {
     private String comment;
 
     @JsonProperty("rating")
-    private Float rating;
+    private int rating;
 
-    @JsonProperty("product_detail_id")
-    private ProductNameResponse productDetailId;
+    @JsonProperty("product_id")
+    private int productId;
+
+    @JsonProperty("product_name")
+    private String productName;
+
+    @JsonProperty("order_details")
+    private List<OrderDetail> orderDetails;
 
     @JsonProperty("user_id")
     private int userId;
@@ -43,7 +52,9 @@ public class ReviewResponse extends BaseResponse {
                 .id(review.getId())
                 .comment(review.getComment())
                 .rating(review.getRating())
-                .productDetailId(ProductNameResponse.formProductName(review.getProductDetail())) // Chuyển ProductDetail thành ProductDetailResponse
+                .productId(review.getProduct().getId())
+                .productName(review.getProduct().getName())
+                .orderDetails(review.getOrder().getOrderDetails())
                 .userId(review.getUser().getId())
                 .name(review.getUser().getFullName())
                 .orderId(review.getOrder().getId())

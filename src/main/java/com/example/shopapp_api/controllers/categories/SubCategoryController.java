@@ -3,6 +3,7 @@ package com.example.shopapp_api.controllers.categories;
 import com.example.shopapp_api.dtos.requests.category.SubCategoryDTO;
 import com.example.shopapp_api.dtos.responses.apiResponse.ApiResponse;
 import com.example.shopapp_api.dtos.responses.apiResponse.MessageResponse;
+import com.example.shopapp_api.dtos.responses.category.SubCategoryResponse;
 import com.example.shopapp_api.entities.categories.SubCategory;
 import com.example.shopapp_api.services.Impl.category.ISubCategoryService;
 import jakarta.validation.Valid;
@@ -43,13 +44,13 @@ public class SubCategoryController {
     }
 
     @GetMapping("")
-    public ResponseEntity<ApiResponse<List<SubCategory>>> getALlSubCategories(
+    public ResponseEntity<ApiResponse<List<SubCategoryResponse>>> getALlSubCategories(
 //            @RequestParam("page") int page,
 //            @RequestParam("limit") int limit
     ) {
 
         try {
-            List<SubCategory> subCategories = subCategoryService.getAllSubCategory();
+            List<SubCategoryResponse> subCategories = subCategoryService.getAllSubCategory();
             return ResponseEntity.ok(new ApiResponse<>("Thành công", subCategories));
 
         } catch (Exception e) {

@@ -51,9 +51,7 @@ public class ProductDetail {
     @JsonManagedReference
     private List<Price> prices;
 
-    @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference
-    private List<Review> reviews;
+
 //    //cart
 //    @OneToMany(mappedBy = "productDetail")
 //    @JsonManagedReference
