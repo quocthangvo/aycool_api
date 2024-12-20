@@ -47,6 +47,9 @@ public class Review extends BaseEntity {
     @JoinColumn(name = "order_id")
     @JsonBackReference
     private Order order;
+
+    @JoinColumn(name = "status")
+    private boolean status;
 //
 //    @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
 //    @JsonManagedReference

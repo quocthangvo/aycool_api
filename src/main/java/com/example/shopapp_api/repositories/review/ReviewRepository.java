@@ -16,7 +16,6 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
 
     Page<Review> findByProductId(int productId, Pageable pageable);
 
-    List<Review> findByProductId(int productId);
 
     boolean existsByOrderIdAndProductIdAndUserId(int orderId, int productId, int userId);
 
@@ -24,4 +23,6 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
     Long getTotalStarsByProductId(@Param("productId") int productId);
 
     boolean existsByOrderIdAndUserId(Long orderId, Long userId);
+
+    Page<Review> findByProductIdAndStatus(int productId, boolean status, Pageable pageable);
 }

@@ -48,14 +48,16 @@ public class ReviewService implements IReviewService {
         // Tạo Pageable object với thông tin phân trang
         Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Order.desc("createdAt"))); // Có thể thêm trường sort theo thời gian nếu cần
 
-        // Lấy các đánh giá từ repository
-        Page<Review> reviewsPage = reviewRepository.findByProductId(productId, pageable);
+        // Lấy các đánh giá từ repository chỉ với status = 1
+        Page<Review> reviewsPage = reviewRepository
+                .findByProductIdAndStatus(productId, true, pageable); // Chỉ lấy đánh giá có status = 1 (hiển thị)
 
         // Chuyển các Review thành ReviewResponse
         Page<ReviewResponse> reviewResponses = reviewsPage.map(review -> ReviewResponse.formReview(review));
 
         return reviewResponses;
     }
+
 
     @Override
     public Long getTotalStars(int productId) {
@@ -64,59 +66,33 @@ public class ReviewService implements IReviewService {
 
 
     @Override
-    public void deleteReview(int productDetailId) throws DataNotFoundException {
-        // Tìm tất cả đánh giá của sản phẩm với productDetailId
-        List<Review> reviews = reviewRepository.findByProductId(productDetailId);
+    public void deleteReview(int reviewId) throws DataNotFoundException {
+        // Tìm đánh giá theo reviewId
+        Optional<Review> reviewOptional = reviewRepository.findById(reviewId);
 
-        if (reviews.isEmpty()) {
-            throw new DataNotFoundException("Không tìm thấy đánh giá nào cho sản phẩm này");
+        // Kiểm tra nếu không tìm thấy đánh giá
+        if (!reviewOptional.isPresent()) {
+            throw new DataNotFoundException("Không tìm thấy đánh giá với ID này");
         }
 
-        // Xóa tất cả đánh giá của sản phẩm này
-        reviewRepository.deleteAll(reviews);
+        // Xóa đánh giá
+        reviewRepository.deleteById(reviewId);
     }
 
+    //ẩn đánh giá
+    // Tìm kiếm review theo reviewId
+    @Override
+    public Review findReviewById(int reviewId) throws DataNotFoundException {
+        return reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy đánh giá với ID này"));
+    }
 
-//    @Override
-//    public Review createReview(int userId, int orderId, int productDetailId, ReviewDTO reviewDTO) {
-//        // Kiểm tra người dùng có tồn tại không
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
-//
-//        // Kiểm tra đơn hàng có tồn tại không và đã giao
-//        Order order = orderRepository.findById(orderId)
-//                .orElseThrow(() -> new RuntimeException("Đơn hàng không tồn tại"));
-//
-//        if (!order.getStatus().equals(OrderStatus.DELIVERED)) {
-//            throw new RuntimeException("Đơn hàng chưa được giao");
-//        }
-//
-//        // Kiểm tra sản phẩm có trong đơn hàng hay không
-//        Optional<OrderDetail> orderDetail = order.getOrderDetails().stream()
-//                .filter(detail -> detail.getProductDetail().getId() == productDetailId)
-//                .findFirst();
-//
-//        if (orderDetail.isEmpty()) {
-//            throw new RuntimeException("Sản phẩm không có trong đơn hàng này");
-//        }
-//
-//        // Kiểm tra người dùng đã đánh giá sản phẩm này chưa
-//        Optional<Review> existingReview = reviewRepository.findByUserIdAndProductDetailId(userId, productDetailId);
-//        if (existingReview.isPresent()) {
-//            throw new RuntimeException("Bạn đã đánh giá sản phẩm này rồi. Bạn chỉ có thể đánh giá lại khi mua lại sản phẩm.");
-//        }
-//
-//        // Tạo mới review
-//        Review review = new Review();
-//        review.setUser(user);
-//        review.setProduct(orderDetail.get().getProductDetail());
-//        review.setRating(reviewDTO.getRating());
-//        review.setComment(reviewDTO.getComment());
-//        review.setOrder(order);
-//        review.setCreatedAt(LocalDateTime.now());
-//
-//        return reviewRepository.save(review);
-//    }
+    // Lưu review sau khi cập nhật trạng thái
+    @Override
+    public void saveReview(Review review) {
+        reviewRepository.save(review);
+    }
+
 
     @Transactional
     @Override
@@ -160,5 +136,20 @@ public class ReviewService implements IReviewService {
     public boolean hasReviewed(Long orderId, Long userId) {
         return reviewRepository.existsByOrderIdAndUserId(orderId, userId);
     }
+
+    @Override
+    public Page<ReviewResponse> getReviews(int productId, int page, int limit) {
+        // Tạo Pageable object với thông tin phân trang
+        Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Order.desc("createdAt"))); // Sắp xếp theo thời gian tạo
+
+        // Lấy tất cả các đánh giá (bao gồm cả ẩn và hiện)
+        Page<Review> reviewsPage = reviewRepository.findByProductId(productId, pageable);
+
+        // Chuyển các Review thành ReviewResponse
+        Page<ReviewResponse> reviewResponses = reviewsPage.map(review -> ReviewResponse.formReview(review));
+
+        return reviewResponses;
+    }
+
 
 }

@@ -20,10 +20,16 @@ public interface IReviewService {
 
     void deleteReview(int id) throws DataNotFoundException;
 
+    Review findReviewById(int reviewId) throws DataNotFoundException;
+
+    void saveReview(Review review);
 
     Review createReview(ReviewDTO reviewDTO);
 
     Long getTotalStars(int productId);
 
     boolean hasReviewed(Long orderId, Long userId);
+
+    // all đánh giá
+    Page<ReviewResponse> getReviews(int productId, int page, int limit);
 }

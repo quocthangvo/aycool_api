@@ -27,7 +27,7 @@ public class ReviewController {
 
 
     @GetMapping("/product/{productId}")
-    public ResponseEntity<ApiResponse<ReviewListResponse>> getReviewsForProductDetail(
+    public ResponseEntity<ApiResponse<ReviewListResponse>> getReviewsForProduct(
             @PathVariable int productId,
             @RequestParam int page,
             @RequestParam int limit) {
@@ -59,11 +59,11 @@ public class ReviewController {
     }
 
 
-    @DeleteMapping("/delete/product/{productDetailId}")
-    public ResponseEntity<MessageResponse> deleteReview(@PathVariable int productDetailId) {
+    @DeleteMapping("/delete/{reviewId}")
+    public ResponseEntity<MessageResponse> deleteReview(@PathVariable int reviewId) {
         try {
             // Gọi service để xóa các đánh giá của sản phẩm
-            reviewService.deleteReview(productDetailId);
+            reviewService.deleteReview(reviewId);
 
             // Trả về phản hồi thành công nếu không có ngoại lệ
             return ResponseEntity.ok(new MessageResponse("Xóa đánh giá thành công"));
@@ -76,6 +76,33 @@ public class ReviewController {
             // Xử lý các ngoại lệ khác
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new MessageResponse("Đã xảy ra lỗi trong quá trình xóa đánh giá"));
+        }
+    }
+
+    //ẩn
+    @PutMapping("/status/{reviewId}")
+    public ResponseEntity<MessageResponse> statusReview(@PathVariable int reviewId) {
+        try {
+            // Tìm kiếm review theo reviewId
+            Review review = reviewService.findReviewById(reviewId);
+
+            if (review == null) {
+                throw new DataNotFoundException("Không tìm thấy đánh giá với ID này");
+            }
+
+            // Chuyển trạng thái ẩn/hiển thị (toggle status)
+            review.setStatus(!review.isStatus());  // nếu true -> false, nếu false -> true
+            reviewService.saveReview(review);  // Lưu lại review với trạng thái mới
+
+            // Trả về phản hồi thành công
+            return ResponseEntity.ok(new MessageResponse("Trạng thái đánh giá đã được cập nhật"));
+
+        } catch (DataNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new MessageResponse("Không tìm thấy đánh giá với ID này"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new MessageResponse("Đã xảy ra lỗi trong quá trình cập nhật trạng thái đánh giá"));
         }
     }
 
@@ -95,5 +122,38 @@ public class ReviewController {
     @GetMapping("/hasReviewed/{orderId}/{userId}")
     public boolean hasReviewed(@PathVariable Long orderId, @PathVariable Long userId) {
         return reviewService.hasReviewed(orderId, userId);
+    }
+
+
+    @GetMapping("/all/{productId}")
+    public ResponseEntity<ApiResponse<ReviewListResponse>> getReviews(
+            @PathVariable int productId,
+            @RequestParam int page,
+            @RequestParam int limit) {
+        try {
+            // Gọi service để lấy danh sách đánh giá phân trang
+            Page<ReviewResponse> reviewsPage = reviewService.getReviews(productId, page, limit);
+
+            // Lấy tổng số sao từ service
+            Long totalStars = reviewService.getTotalStars(productId);
+
+            int totalPages = reviewsPage.getTotalPages();//lấy ra tổng số trang
+            long totalRecords = reviewsPage.getTotalElements();
+            List<ReviewResponse> reviewList = reviewsPage.getContent();//từ productPgae lấy ra ds các product getContent
+
+            ReviewListResponse reviewListResponse = (ReviewListResponse
+                    .builder()
+                    .reviewResponseList(reviewList)
+                    .totalPages(totalPages)
+                    .totalRecords(totalRecords)
+                    .totalStars(totalStars != null ? totalStars : 0)
+                    .build());
+            return ResponseEntity.ok(new ApiResponse<>("Thành công", reviewListResponse));
+
+        } catch (Exception e) {
+            // Xử lý lỗi
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse<>("Đã xảy ra lỗi khi lấy danh sách đánh giá", null));
+        }
     }
 }

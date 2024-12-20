@@ -46,6 +46,8 @@ public class ReviewResponse extends BaseResponse {
     @JsonProperty("order_id")
     private int orderId;
 
+    private boolean status;
+
     public static ReviewResponse formReview(Review review) {
 
         ReviewResponse reviewResponse = ReviewResponse.builder()
@@ -59,6 +61,10 @@ public class ReviewResponse extends BaseResponse {
                 .name(review.getUser().getFullName())
                 .orderId(review.getOrder().getId())
                 .build();
+
+        // Set thêm trạng thái (status)
+        reviewResponse.setStatus(review.isStatus());
+
         reviewResponse.setCreatedAt(review.getCreatedAt());
         reviewResponse.setUpdatedAt(review.getUpdatedAt());
         return reviewResponse;
