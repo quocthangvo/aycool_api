@@ -135,6 +135,13 @@ public class WebSecurityConfig {
                             //replies
                             .requestMatchers(POST, String.format("%s/replies/**", apiPrefix)).hasRole(Role.ADMIN)
 
+
+                            //coupons
+                            .requestMatchers(POST, String.format("%s/coupons/**", apiPrefix)).hasRole(Role.ADMIN)
+                            .requestMatchers(GET, String.format("%s/coupons/**", apiPrefix)).permitAll()
+                            .requestMatchers(DELETE, String.format("%s/coupons/**", apiPrefix)).hasRole(Role.ADMIN)
+                            .requestMatchers(PUT, String.format("%s/coupons/**", apiPrefix)).hasRole(Role.ADMIN)
+
                             //upload ảnh hiển thị
                             .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
 

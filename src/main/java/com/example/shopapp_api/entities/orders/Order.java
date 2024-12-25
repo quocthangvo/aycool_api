@@ -1,6 +1,7 @@
 package com.example.shopapp_api.entities.orders;
 
 import com.example.shopapp_api.entities.BaseEntity;
+import com.example.shopapp_api.entities.coupon.Coupon;
 import com.example.shopapp_api.entities.orders.status.OrderStatus;
 import com.example.shopapp_api.entities.orders.status.PaymentMethod;
 import com.example.shopapp_api.entities.orders.status.PaymentStatus;
@@ -74,5 +75,9 @@ public class Order extends BaseEntity {
     @Column(name = "payment_status")
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;
+
+    @ManyToOne
+    @JoinColumn(name = "coupon_id")
+    private Coupon coupon;
 
 }
