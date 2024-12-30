@@ -4,6 +4,7 @@ import com.example.shopapp_api.dtos.requests.order.OrderDTO;
 import com.example.shopapp_api.dtos.requests.order.OrderStatusDTO;
 import com.example.shopapp_api.dtos.responses.order.OrderResponse;
 import com.example.shopapp_api.dtos.responses.order.StatusResponse;
+import com.example.shopapp_api.entities.orders.Order;
 import com.example.shopapp_api.entities.orders.status.OrderStatus;
 import com.example.shopapp_api.exceptions.DataNotFoundException;
 import org.springframework.data.domain.Page;
@@ -28,4 +29,7 @@ public interface IOrderService {
 
     Page<OrderResponse> getAllOrderss(String orderCode, List<OrderStatus> status, LocalDateTime orderDate, Pageable pageable);
 
+    Order applyCouponToOrder(OrderDTO orderDTO);
+
+   
 }

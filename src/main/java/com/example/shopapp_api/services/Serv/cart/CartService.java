@@ -116,25 +116,27 @@ public class CartService implements ICartServices {
 
     @Override
     public CartResponse updateQuantity(int cartItemId, CartItemDTO cartItemDTO) throws Exception {
-
-        // Find the cart item by ID
+        // Tìm CartItem theo ID
         CartItem cartItem = cartItemRepository.findById(cartItemId)
                 .orElseThrow(() -> new Exception("Sản phẩm không tồn tại trong giỏ"));
 
-        // Validate quantity (optional, ensure it's a positive number and not exceeding the limit)
+        // Kiểm tra số lượng (lớn hơn 0 và không quá 99)
         if (cartItemDTO.getQuantity() <= 0 || cartItemDTO.getQuantity() > 99) {
             throw new Exception("Số lượng phải lớn hơn 0 và không quá 99");
         }
 
-        // Update the quantity of the cart item using the quantity from DTO
+        // Cập nhật số lượng cho CartItem
         cartItem.setQuantity(cartItemDTO.getQuantity());
-        cartItemRepository.save(cartItem);  // Save the updated cart item
 
-        // Optionally, fetch and return the updated cart if needed
+        // Lưu lại CartItem đã được cập nhật
+        cartItemRepository.save(cartItem);
+
+        // Lấy giỏ hàng để trả lại
         Cart cart = cartRepository.findById(cartItem.getCart().getId())
                 .orElseThrow(() -> new Exception("Giỏ hàng không tồn tại"));
 
-        return CartResponse.fromCart(cart);
+        return CartResponse.fromCart(cart); // Trả về CartResponse
     }
+
 
 }

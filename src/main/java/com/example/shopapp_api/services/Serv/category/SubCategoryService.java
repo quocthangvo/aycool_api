@@ -38,9 +38,12 @@ public class SubCategoryService implements ISubCategoryService {
     }
 
     @Override
-    public SubCategory getSubCategoryById(int id) {
-        return subCategoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy danh  mục con với id: " + id));
+    public SubCategoryResponse getSubCategoryById(int id) {
+        SubCategory subCategory = subCategoryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục con với id: " + id));
+
+        // Ánh xạ từ SubCategory sang SubCategoryResponse
+        return SubCategoryResponse.formSubCategory(subCategory);
     }
 
     @Override
@@ -71,7 +74,8 @@ public class SubCategoryService implements ISubCategoryService {
 
     @Override
     public SubCategory updateSubCategory(int subCategoryId, SubCategoryDTO subCategoryDTO) throws DataNotFoundException {
-        SubCategory existingSubCategory = getSubCategoryById(subCategoryId);
+        SubCategory existingSubCategory = subCategoryRepository.findById(subCategoryId)
+                .orElseThrow(() -> new DataNotFoundException("Không tìm thâ id danh mục con" + subCategoryId));
         if (existingSubCategory != null) {
             existingSubCategory.setName(subCategoryDTO.getName());
             // Kiểm tra categoryId trong DTO, nếu có giá trị thì cập nhật danh mục cha

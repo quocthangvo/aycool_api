@@ -345,8 +345,8 @@ public class ProductController {
             @RequestParam(value = "color_id", required = false) Integer colorId,
             @RequestParam(value = "size_ids", required = false) List<Integer> sizeIds,
             @RequestParam(value = "material_ids", required = false) List<Integer> materialIds,
-            @RequestParam("page") int page,          // Mặc định là trang đầu tiên
-            @RequestParam("limit") int limit) {
+            @RequestParam(value = "page") int page,          // Mặc định là trang đầu tiên
+            @RequestParam(value = "limit") int limit) {
 
         Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").descending());
         Page<ProductResponse> productPage = productService

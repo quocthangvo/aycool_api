@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "reviews")
+@Table(name = "danh_gia")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -26,29 +26,30 @@ import java.util.List;
 public class Review extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)//id tự dong tăng
+    @Column(name = "ma_danh_gia")
     private int id;
 
-    @JoinColumn(name = "comment", columnDefinition = "TEXT")
+    @Column(name = "binh_luan", columnDefinition = "TEXT")
     private String comment;
 
-    @JoinColumn(name = "rating")
+    @Column(name = "so_sao")
     private int rating;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "ma_nguoi_dung")
     private User user;
 
     @ManyToOne
     @JsonBackReference
-    @JoinColumn(name = "product_id")
+    @JoinColumn(name = "ma_san_pham")
     private Product product;
 
     @ManyToOne
-    @JoinColumn(name = "order_id")
+    @JoinColumn(name = "ma_don_hang")
     @JsonBackReference
     private Order order;
 
-    @JoinColumn(name = "status")
+    @Column(name = "trang_thai")
     private boolean status;
 //
 //    @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)

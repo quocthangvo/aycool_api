@@ -9,7 +9,7 @@ import lombok.*;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "prices")
+@Table(name = "gia_ban")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -18,22 +18,23 @@ import java.time.LocalDate;
 public class Price extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)//id tự dong759 tăng
+    @Column(name = "ma_gia")
     private int id;
 
-    @Column(name = "selling_price", nullable = false)
+    @Column(name = "gia_ban", nullable = false)
     private Float sellingPrice;
 
-    @Column(name = "promotion_price")
+    @Column(name = "gia_khuyen_mai")
     private Float promotionPrice;
 
-    @Column(name = "start_date")
+    @Column(name = "ngay_bat_dau")
     private LocalDate startDate;
 
-    @Column(name = "end_date")
+    @Column(name = "ngay_ket_thuc")
     private LocalDate endDate;
 
     @ManyToOne
-    @JoinColumn(name = "product_detail_id")
+    @JoinColumn(name = "ma_chi_tiet_san_pham")
     @JsonBackReference
     private ProductDetail productDetail;
 }

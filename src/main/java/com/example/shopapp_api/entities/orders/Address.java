@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Table(name = "address")
+@Table(name = "dia_chi")
 @Entity
 @Builder
 @Getter
@@ -15,26 +15,29 @@ import lombok.*;
 public class Address {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)//id tự động tăng
+    @Column(name = "ma_dia_chi")
     private int id;
 
-    @Column(name = "full_name", length = 100)
+    @Column(name = "ho_ten", length = 100)
     private String fullName;
 
-    @Column(name = "phone_number", nullable = false, length = 10)
+    @Column(name = "so_dien_thoai", nullable = false, length = 10)
     private String phoneNumber;
 
-    @Column(name = "street_name")
+    @Column(name = "ten_duong")
     private String streetName;
 
-    @Column(name = "city", length = 100)
+    @Column(name = "thanh_pho", length = 100)
     private String city;
 
+    @Column(name = "quan_huyen")
     private String district;
 
+    @Column(name = "xa")
     private String ward;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "ma_nguoi_dung")
     @JsonBackReference
     private User user;
 }

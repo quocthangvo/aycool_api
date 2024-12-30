@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity //đê biết là thực thể
-@Table(name = "colors")
+@Table(name = "mau_sac")
 @Data
 @Getter
 @Setter
@@ -16,9 +16,10 @@ import lombok.*;
 public class Color {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)//id tự động tăng
+    @Column(name = "ma_mau_sac")
     private int id;
 
-    @Column(name = "name", nullable = false, length = 250)
+    @Column(name = "ten_mau_sac", nullable = false, length = 250)
     private String name;
 
 

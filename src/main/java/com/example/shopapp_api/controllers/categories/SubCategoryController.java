@@ -61,7 +61,7 @@ public class SubCategoryController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getCategoryById(@PathVariable("id") int subCategoryId) {
         try {
-            SubCategory existingSubCategory = subCategoryService.getSubCategoryById(subCategoryId);
+            SubCategoryResponse existingSubCategory = subCategoryService.getSubCategoryById(subCategoryId);
             return ResponseEntity.ok(new ApiResponse<>("Thành công", existingSubCategory));
 
         } catch (Exception e) {

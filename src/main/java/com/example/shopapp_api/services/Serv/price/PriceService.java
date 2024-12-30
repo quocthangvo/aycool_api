@@ -109,14 +109,23 @@ public class PriceService implements IPriceService {
                 .map(PriceResponse::formPrice)
                 .collect(Collectors.toList());
 
-        // Sắp xếp danh sách theo giá
-        priceResponses.sort((p1, p2) -> {
-            if (pageRequest.getSort().getOrderFor("sellingPrice").getDirection() == Sort.Direction.ASC) {
-                return Double.compare(p1.getSellingPrice(), p2.getSellingPrice()); // Tăng dần
-            } else {
-                return Double.compare(p2.getSellingPrice(), p1.getSellingPrice()); // Giảm dần
-            }
-        });
+//        // Sắp xếp danh sách theo giá
+//        priceResponses.sort((p1, p2) -> {
+//            if (pageRequest.getSort().getOrderFor("sellingPrice").getDirection() == Sort.Direction.ASC) {
+//                return Double.compare(p1.getSellingPrice(), p2.getSellingPrice()); // Tăng dần
+//            } else {
+//                return Double.compare(p2.getSellingPrice(), p1.getSellingPrice()); // Giảm dần
+//            }
+//        });
+        if (pageRequest.getSort().getOrderFor("sellingPrice") != null) {
+            priceResponses.sort((p1, p2) -> {
+                if (pageRequest.getSort().getOrderFor("sellingPrice").getDirection() == Sort.Direction.ASC) {
+                    return Double.compare(p1.getSellingPrice(), p2.getSellingPrice()); // Tăng dần
+                } else {
+                    return Double.compare(p2.getSellingPrice(), p1.getSellingPrice()); // Giảm dần
+                }
+            });
+        }
 
         // Tính toán phân trang (cắt dữ liệu theo pageRequest)
         int start = Math.min((int) pageRequest.getOffset(), priceResponses.size());

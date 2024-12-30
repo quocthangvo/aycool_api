@@ -113,13 +113,24 @@ public class PriceController {
     public ResponseEntity<ApiResponse<?>> getAllPrices(
             @RequestParam("page") int page,
             @RequestParam("limit") int limit,
-            @RequestParam(value = "sortOrder", defaultValue = "desc") String sortOrder
+            @RequestParam(value = "sortOrder", defaultValue = "") String sortOrder
     ) {
         try {
             // Điều chỉnh sắp xếp theo yêu cầu của người dùng
-            Sort sort = sortOrder.equals("asc") ?
-                    Sort.by(Sort.Order.asc("sellingPrice")) :
-                    Sort.by(Sort.Order.desc("sellingPrice"));
+//            Sort sort = sortOrder.equals("asc") ?
+//                    Sort.by(Sort.Order.asc("sellingPrice")) :
+//                    Sort.by(Sort.Order.desc("sellingPrice"));
+            Sort sort;
+
+            // Nếu sortOrder không có giá trị, sắp xếp theo createdAt mặc định
+            if (sortOrder.isEmpty()) {
+                sort = Sort.by(Sort.Order.desc("createdAt"));  // Sort by startDate in descending order
+            } else if (sortOrder.equals("asc")) {
+                sort = Sort.by(Sort.Order.asc("sellingPrice"));
+            } else {
+                sort = Sort.by(Sort.Order.desc("sellingPrice"));
+            }
+
 
             PageRequest pageRequest = PageRequest.of(page, limit, sort);
 

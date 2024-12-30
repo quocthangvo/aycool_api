@@ -6,14 +6,20 @@ import com.example.shopapp_api.dtos.responses.order.OrderResponse;
 import com.example.shopapp_api.dtos.responses.order.StatusResponse;
 import com.example.shopapp_api.entities.cart.Cart;
 import com.example.shopapp_api.entities.cart.CartItem;
+import com.example.shopapp_api.entities.coupon.Coupon;
+import com.example.shopapp_api.entities.coupon.CouponUsage;
+import com.example.shopapp_api.entities.coupon.DiscountType;
 import com.example.shopapp_api.entities.orders.*;
 import com.example.shopapp_api.entities.orders.status.OrderStatus;
 import com.example.shopapp_api.entities.orders.status.PaymentMethod;
 import com.example.shopapp_api.entities.orders.status.PaymentStatus;
 import com.example.shopapp_api.entities.prices.Price;
 import com.example.shopapp_api.entities.products.ProductDetail;
+import com.example.shopapp_api.entities.users.User;
 import com.example.shopapp_api.exceptions.DataNotFoundException;
 import com.example.shopapp_api.repositories.cart.CartRepository;
+import com.example.shopapp_api.repositories.coupon.CouponRepository;
+import com.example.shopapp_api.repositories.coupon.CouponUsageRepository;
 import com.example.shopapp_api.repositories.order.OrderDetailRepository;
 import com.example.shopapp_api.repositories.price.PriceRepository;
 import com.example.shopapp_api.repositories.product.ProductDetailRepository;
@@ -28,8 +34,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,6 +55,8 @@ public class OrderService implements IOrderService {
     private final PriceRepository priceRepository;
     private final ModelMapper modelMapper;
     private final CartRepository cartRepository;
+    private final CouponRepository couponRepository;
+    private final CouponUsageRepository couponUsageRepository;
 
 //    @Override
 //    public OrderResponse createOrder(OrderDTO orderDTO) throws DataNotFoundException {
@@ -334,77 +344,6 @@ public class OrderService implements IOrderService {
     }
 
 
-//    @Override
-//    public OrderResponse createOrder(OrderDTO orderDTO) throws DataNotFoundException {
-//        // Lấy giỏ hàng của người dùng
-//        Cart cart = cartRepository.findByUserId(orderDTO.getUserId())
-//                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy giỏ hàng của người dùng"));
-//
-//        // Kiểm tra địa chỉ giao hàng
-//        Address address = addressRepository.findById(orderDTO.getAddressId())
-//                .orElseThrow(() -> new DataNotFoundException("Không tìm thấy địa chỉ với id: " + orderDTO.getAddressId()));
-//
-//        // Tạo đơn hàng mới
-//        Order order = new Order();
-//        order.setUser(cart.getUser());
-//        order.setAddress(address);
-//        order.setOrderDate(LocalDateTime.now());
-//        order.setStatus(OrderStatus.PENDING);
-//        order.setActive(true);
-//        order.setOrderCode(generateOrderCode());
-//        order.setPaymentMethod(orderDTO.getPaymentMethod());
-//        order.setShippingDate(orderDTO.getShippingDate());
-//        order.setNote(orderDTO.getNote());
-//        orderRepository.save(order);
-//        //kt ngày giao hàng k phải hôm nay
-//        LocalDateTime shippingDate = orderDTO.getShippingDate() == null ? LocalDateTime.now() : orderDTO.getShippingDate();
-//        if (shippingDate.isBefore(LocalDateTime.now())) {
-//            throw new DataNotFoundException("Ngày giao hàng không phải hôm nay");
-//        }
-//
-//        // Duyệt qua các mục trong giỏ hàng và thêm vào `OrderDetail`
-//        float totalMoney = 0;
-//        List<OrderDetail> orderDetails = new ArrayList<>();
-//
-//        for (CartItem cartItem : cart.getItems()) {
-//            ProductDetail productDetail = cartItem.getProductDetail();
-//
-//            // Tính giá sản phẩm (ưu tiên giá khuyến mãi nếu có)
-//            Price price = productDetail.getPrices().stream()
-//                    .max(Comparator.comparing(Price::getCreatedAt))
-//                    .orElseThrow(() -> new DataNotFoundException("Không tìm thấy giá cho sản phẩm"));
-//
-//            float productPrice = (price.getPromotionPrice() != null && price.getPromotionPrice() > 0)
-//                    ? price.getPromotionPrice()
-//                    : price.getSellingPrice();
-//
-//            float detailTotal = productPrice * cartItem.getQuantity();
-//            totalMoney += detailTotal;
-//
-//            // Tạo `OrderDetail`
-//            OrderDetail orderDetail = new OrderDetail();
-//            orderDetail.setOrder(order);
-//            orderDetail.setProductDetail(productDetail);
-//            orderDetail.setQuantity(cartItem.getQuantity());
-//            orderDetail.setTotalMoney(detailTotal);
-//            orderDetailRepository.save(orderDetail);
-//
-//            orderDetails.add(orderDetail);
-//        }
-//
-//        // Cập nhật tổng tiền cho đơn hàng
-//        order.setTotalMoney(totalMoney);
-//        order.setOrderDetails(orderDetails);
-//        orderRepository.save(order);
-//
-//        // Xóa giỏ hàng sau khi đặt hàng thành công
-//        cart.getItems().clear();
-//        cartRepository.save(cart);
-//
-//        // Trả về thông tin đơn hàng
-//        return OrderResponse.formOrder(order);
-//    }
-
     @Override
     public OrderResponse createOrder(OrderDTO orderDTO) throws DataNotFoundException {
         // Lấy giỏ hàng của người dùng
@@ -477,8 +416,40 @@ public class OrderService implements IOrderService {
             }
         }
 
-        // Cập nhật tổng tiền cho đơn hàng
+        // Lưu tổng tiền gốc
         order.setTotalMoney(totalMoney);
+
+
+        // Kiểm tra mã giảm giá nếu có và áp dụng vào tổng tiền đơn hàng
+        float totalMoneyAfterDiscount = totalMoney;
+        if (orderDTO.getCouponId() != null) {
+            Coupon coupon = couponRepository.findById(orderDTO.getCouponId())
+                    .orElseThrow(() -> new DataNotFoundException("Mã giảm giá không hợp lệ"));
+
+            if (!coupon.isStatus()) {
+                throw new DataNotFoundException("Mã giảm giá không còn hiệu lực");
+            }
+
+            if (coupon.getEndDate() != null && coupon.getEndDate().isBefore(LocalDate.now())) {
+                throw new DataNotFoundException("Mã giảm giá đã hết hạn");
+            }
+
+            if (coupon.getMinOrderValue() != null && totalMoney < coupon.getMinOrderValue()) {
+                throw new DataNotFoundException("Giá trị đơn hàng chưa đủ để sử dụng mã giảm giá");
+            }
+
+            if (coupon.getDiscountType() == DiscountType.PERCENT) {
+                float discountAmount = totalMoney * (coupon.getDiscountValue() / 100);
+                totalMoneyAfterDiscount -= discountAmount;
+            } else if (coupon.getDiscountType() == DiscountType.FIXED_AMOUNT) {
+                totalMoneyAfterDiscount -= coupon.getDiscountValue();
+            }
+        }
+
+        // Cập nhật tổng tiền cho đơn hàng
+        order.setTotalMoneyAfterDiscount(totalMoneyAfterDiscount); // cập nhật tiền sau giảm giá
+
+//        order.setTotalMoney(totalMoney);
         order.setOrderDetails(orderDetails);
         orderRepository.save(order);
 
@@ -506,6 +477,91 @@ public class OrderService implements IOrderService {
                     .map(OrderResponse::formOrder);  // Ánh xạ từ Order sang OrderResponse
         }
     }
+
+    @Transactional
+    @Override
+    // Phương thức áp dụng mã giảm giá vào đơn hàng
+    public Order applyCouponToOrder(OrderDTO orderDTO) {
+        // Lấy thông tin từ OrderDTO
+        int orderId = Integer.parseInt(orderDTO.getOrderId()); // Lấy orderId từ OrderDTO
+        int userId = orderDTO.getUserId(); // Lấy userId từ OrderDTO
+        int couponId = orderDTO.getCouponId(); // Lấy couponId từ OrderDTO
+
+        // Tìm đơn hàng bằng orderId
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Đơn hàng không tồn tại."));
+
+        // Tìm coupon theo couponId
+        Coupon coupon = couponRepository.findById(couponId)
+                .orElseThrow(() -> new IllegalArgumentException("Mã giảm giá không hợp lệ hoặc đã hết hạn."));
+
+        // Kiểm tra nếu tổng tiền đơn hàng đủ để áp dụng mã giảm giá
+        if (order.getTotalMoney() < coupon.getMinOrderValue()) {
+            throw new IllegalArgumentException("Tổng tiền của đơn hàng không đủ để sử dụng mã giảm giá.");
+        }
+
+        // Tính toán tổng tiền sau khi áp dụng giảm giá
+        Float totalAfterDiscount = calculateTotalAfterDiscountWithUsage(userId, coupon, order.getTotalMoney());
+
+        // Cập nhật đơn hàng với tổng tiền sau khi giảm giá
+        order.setTotalMoneyAfterDiscount(totalAfterDiscount);
+        order.setCoupon(coupon);  // Áp dụng coupon vào đơn hàng
+
+        // Lưu đơn hàng vào cơ sở dữ liệu
+        return orderRepository.save(order);
+    }
+
+    // Phương thức tính tổng tiền sau khi áp dụng mã giảm giá
+    public Float calculateTotalAfterDiscountWithUsage(int userId, Coupon coupon, Float totalMoney) {
+        // Kiểm tra điều kiện sử dụng mã giảm giá
+        if (coupon == null || !coupon.isStatus()) {
+            throw new IllegalArgumentException("Mã giảm giá không hợp lệ.");
+        }
+
+        // Kiểm tra nếu đơn hàng nhỏ hơn giá trị tối thiểu của mã giảm giá
+        if (totalMoney < coupon.getMinOrderValue()) {
+            throw new IllegalArgumentException("Giá trị đơn hàng không đủ để áp dụng mã giảm giá.");
+        }
+
+        // Tính toán giá trị giảm giá dựa trên loại mã giảm giá (tiền hay phần trăm)
+        Float discountValue = 0.0f;
+        if (coupon.getDiscountType() == DiscountType.FIXED_AMOUNT) {
+            discountValue = coupon.getDiscountValue();
+        } else if (coupon.getDiscountType() == DiscountType.PERCENT) {
+            discountValue = totalMoney * (coupon.getDiscountValue() / 100);
+        }
+
+        // Đảm bảo tổng tiền không bị âm
+        return Math.max(0, totalMoney - discountValue);
+    }
+
+//    private void checkCouponUsageLimit(int userId, int couponId) {
+//        // Tìm kiếm mã giảm giá theo couponId
+//        Coupon coupon = couponRepository.findById(couponId)
+//                .orElseThrow(() -> new IllegalArgumentException("Mã giảm giá không hợp lệ."));
+//
+//        // Tìm kiếm người dùng theo userId
+//        User user = userRepository.findById(userId)
+//                .orElseThrow(() -> new IllegalArgumentException("Người dùng không tồn tại."));
+//
+//        // Tìm kiếm bản ghi sử dụng mã giảm giá của người dùng hoặc tạo mới với số lần sử dụng là 0
+//        CouponUsage couponUsage = couponUsageRepository.findByUserAndCoupon(user, coupon)
+//                .orElse(new CouponUsage(coupon, user, 0));
+//
+//        // Lấy giới hạn số lần sử dụng từ Coupon
+//        int usageLimit = coupon.getUsageLimit(); // Lấy từ Coupon
+//
+//        // Kiểm tra nếu người dùng đã sử dụng hết số lần có thể dùng mã này
+//        if (couponUsage.getUsageCount() >= usageLimit) {
+//            throw new IllegalArgumentException("Bạn đã sử dụng mã giảm giá này hết số lần cho phép.");
+//        }
+//
+//        // Tăng số lần sử dụng mã giảm giá
+//        couponUsage.incrementUsageCount();
+//
+//        // Lưu bản ghi sử dụng mã giảm giá
+//        couponUsageRepository.save(couponUsage);
+//    }
 
 
 }

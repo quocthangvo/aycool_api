@@ -102,6 +102,7 @@ public class ProductService implements IProductService {
                                 .size(existingSize)
                                 .skuVersion(skuVersion)
                                 .skuName(skuName)
+                                .quantity(0)
                                 .build();
                 productDetailRepository.save(newProductDetail);
             }

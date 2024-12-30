@@ -29,20 +29,20 @@ public class ReplyResponse extends BaseResponse {
 
     private int user;
 
-    public static ReplyResponse formReply(Reply reply) {
-
-        ReplyResponse replyResponse = ReplyResponse.builder()
-
-                .content(reply.getContent())
-                .review(reply.getReview().getId())
-                .comment(reply.getReview().getComment())
-//                .rating(reply.getReview().getRating())
-                .user(reply.getUser().getId())
-
-                .build();
-        replyResponse.setCreatedAt(reply.getCreatedAt());
-        replyResponse.setUpdatedAt(reply.getUpdatedAt());
-
-        return replyResponse;
-    }
+//    public static ReplyResponse formReply(Reply reply) {
+//
+//        ReplyResponse replyResponse = ReplyResponse.builder()
+//
+//                .content(reply.getContent())
+//                .review(reply.getReview().getId())
+//                .comment(reply.getReview().getComment())
+////                .rating(reply.getReview().getRating())
+//                .user(reply.getUser().getId())
+//
+//                .build();
+//        replyResponse.setCreatedAt(reply.getCreatedAt());
+//        replyResponse.setUpdatedAt(reply.getUpdatedAt());
+//
+//        return replyResponse;
+//    }
 }

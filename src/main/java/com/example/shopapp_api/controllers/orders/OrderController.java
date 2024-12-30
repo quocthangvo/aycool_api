@@ -7,6 +7,7 @@ import com.example.shopapp_api.dtos.responses.apiResponse.MessageResponse;
 import com.example.shopapp_api.dtos.responses.order.OrderListResponse;
 import com.example.shopapp_api.dtos.responses.order.OrderResponse;
 import com.example.shopapp_api.dtos.responses.order.StatusResponse;
+import com.example.shopapp_api.entities.orders.Order;
 import com.example.shopapp_api.entities.orders.status.OrderStatus;
 import com.example.shopapp_api.services.Impl.order.IOrderService;
 import jakarta.validation.Valid;
@@ -168,6 +169,20 @@ public class OrderController {
 
         // Trả về response
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/apply-coupon")
+    public ResponseEntity<?> applyCoupon(@RequestBody OrderDTO orderDTO) {
+        try {
+            // Gọi phương thức trong service để xử lý mã giảm giá
+            Order updatedOrder = orderService.applyCouponToOrder(orderDTO);
+
+            // Trả về đơn hàng đã cập nhật
+            return ResponseEntity.ok(new ApiResponse<>("Cập nhật đơn hàng thành công", updatedOrder));
+        } catch (IllegalArgumentException e) {
+            // Xử lý khi có lỗi (mã giảm giá không hợp lệ, không đủ điều kiện, v.v.)
+            return ResponseEntity.badRequest().body(new ApiResponse<>("Lỗi: " + e.getMessage(), null));
+        }
     }
 
 

@@ -16,7 +16,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-@Table(name = "users")
+@Table(name = "nguoi_dung")
 @Entity
 @Getter
 @Setter
@@ -27,27 +27,28 @@ import java.util.List;
 public class User extends BaseEntity implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)//id tự dong759 tăng
+    @Column(name = "ma_nguoi_dung")
     private int id;
 
-    @Column(name = "full_name", length = 250)
+    @Column(name = "ten_tai_khoan", length = 250)
     private String fullName;
 
     @Column(name = "email", nullable = false)
     private String email;
 
-    @Column(name = "password", nullable = false)
+    @Column(name = "mat_khau", nullable = false)
     private String password;
-
 
     private String avatar;
 
+    @Column(name = "trang_thai")
     private boolean active;
 
-    @Column(name = "date_of_birth")
+    @Column(name = "ngay_sinh")
     private LocalDate dateOfBirth;
 
     @ManyToOne
-    @JoinColumn(name = "role_id")
+    @JoinColumn(name = "ma_quyen")
     private Role role;
 
 

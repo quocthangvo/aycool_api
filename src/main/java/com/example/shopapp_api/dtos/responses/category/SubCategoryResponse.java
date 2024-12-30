@@ -18,6 +18,9 @@ public class SubCategoryResponse {
     @JsonProperty("category_name")
     private String categoryName;
 
+    @JsonProperty("category_id")
+    private int categoryId;
+
     public static SubCategoryResponse formSubCategory(SubCategory subCategory) {
 
 
@@ -25,7 +28,7 @@ public class SubCategoryResponse {
                 .id(subCategory.getId())
                 .name(subCategory.getName())
                 .categoryName(subCategory.getCategory().getName())
-
+                .categoryId(subCategory.getCategory().getId())
                 .build();
 
         return subCategoryResponse;

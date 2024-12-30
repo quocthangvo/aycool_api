@@ -12,8 +12,8 @@ import lombok.*;
 @AllArgsConstructor //khởi tạo all
 @NoArgsConstructor
 public class CartItemDTO {
-    private int id;
-    private ProductDetail productDetail;
+    //    private int id;
+    //    private ProductDetail productDetail;
     private int quantity;
 
 }

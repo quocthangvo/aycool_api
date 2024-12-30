@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "roles")
+@Table(name = "quyen")
 @Getter
 @Setter
 @AllArgsConstructor //khởi tạo all
@@ -12,9 +12,10 @@ import lombok.*;
 public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)//id tự dong759 tăng
+    @Column(name = "ma_quyen")
     private int id;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "ten_quyen", nullable = false)
     private String name;
 
     public static String ADMIN = "ADMIN";

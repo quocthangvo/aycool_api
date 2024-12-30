@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity //đê biết là thực thể
-@Table(name = "sizes")
+@Table(name = "kich_thuoc")
 @Data
 @Getter
 @Setter
@@ -16,12 +16,13 @@ import lombok.*;
 public class Size {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)//id tự động tăng
+    @Column(name = "ma_kich_thuoc")
     private int id;
 
-    @Column(name = "name", nullable = false, length = 250)
+    @Column(name = "ten_kich_thuoc", nullable = false, length = 250)
     private String name;
 
-    @Column(name = "description")
+    @Column(name = "mo_ta")
     private String description;
-    
+
 }

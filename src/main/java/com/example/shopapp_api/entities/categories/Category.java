@@ -7,7 +7,7 @@ import lombok.*;
 import java.util.List;
 
 @Entity //đê biết là thực thể
-@Table(name = "categories")
+@Table(name = "danh_muc")
 @Data
 @Getter
 @Setter
@@ -18,9 +18,10 @@ import java.util.List;
 public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)//id tự động tăng
+    @Column(name = "ma_danh_muc")
     private int id;
 
-    @Column(name = "name", nullable = false, length = 250)
+    @Column(name = "ten_danh_muc", nullable = false, length = 250)
     private String name;
 
     @OneToMany(mappedBy = "category")

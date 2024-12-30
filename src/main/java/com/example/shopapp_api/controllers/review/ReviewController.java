@@ -110,7 +110,7 @@ public class ReviewController {
     @PostMapping("")
     public ResponseEntity<ApiResponse<?>> createReview(@RequestBody ReviewDTO reviewDTO) {
         try {
-            Review review = reviewService.createReview(
+            List<Review> review = reviewService.createReview(
                     reviewDTO
             );
             return ResponseEntity.ok(new ApiResponse<>("Thành công", review));

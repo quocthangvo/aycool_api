@@ -13,18 +13,19 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "sub_categories")
+@Table(name = "danh_muc_con")
 
 public class SubCategory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)//id tự dong759 tăng
+    @Column(name = "ma_danh_muc_con")
     private int id;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "ten_danh_muc_con", nullable = false)
     private String name;
 
     @ManyToOne
     @JsonBackReference
-    @JoinColumn(name = "category_id")
+    @JoinColumn(name = "ma_danh_muc")
     private Category category;
 }

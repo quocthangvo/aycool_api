@@ -13,7 +13,7 @@ import java.util.List;
 
 
 @Entity
-@Table(name = "products")
+@Table(name = "san_pham")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -24,23 +24,24 @@ import java.util.List;
 public class Product extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)//id tự dong759 tăng
+    @Column(name = "ma_san_pham")
     private int id;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "ten_san_pham", nullable = false)
     private String name;
 
     @Column(name = "sku", nullable = false)
     private String sku;
 
-    @Column(name = "description", columnDefinition = "TEXT")
+    @Column(name = "mo_ta", columnDefinition = "TEXT")
     private String description;
 
     @ManyToOne
-    @JoinColumn(name = "sub_category_id")
+    @JoinColumn(name = "ma_danh_muc_con")
     private SubCategory subCategory;
 
     @ManyToOne
-    @JoinColumn(name = "material_id")
+    @JoinColumn(name = "ma_chat_lieu")
     private Material material;
 
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)

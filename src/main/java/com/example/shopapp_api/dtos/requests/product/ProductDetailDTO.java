@@ -23,7 +23,7 @@ public class ProductDetailDTO {
     private String skuVersion;
 
     @Min(value = 1, message = "Số lượng phải lớn hơn 1")
-    private int quantity;
+    private Integer quantity;
 
     @NotNull(message = "Danh mục sản phẩm là bắt buộc chọn")
     @JsonProperty("product_id")

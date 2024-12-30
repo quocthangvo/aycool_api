@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Table(name = "order_details")
+@Table(name = "chi_tiet_don_hang")
 @Entity
 @Data
 @Builder
@@ -18,21 +18,22 @@ import lombok.*;
 public class OrderDetail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)//id tự dong759 tăng
+    @Column(name = "ma_chi_tiet_don_hang")
     private int id;
 
     @ManyToOne
-    @JoinColumn(name = "order_id")
+    @JoinColumn(name = "ma_don_hang")
     @JsonBackReference
     private Order order;
 
     @ManyToOne
-    @JoinColumn(name = "product_detail_id")
+    @JoinColumn(name = "ma_chi_tiet_san_pham")
     private ProductDetail productDetail;
 
-    @Column(name = "quantity", nullable = false)
+    @Column(name = "so_luong", nullable = false)
     private int quantity;
 
-    @Column(name = "total_money", nullable = false)
+    @Column(name = "tong_tien", nullable = false)
     private Float totalMoney;
 
 //    @Column(name = "price", nullable = false)

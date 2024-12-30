@@ -10,11 +10,8 @@ import lombok.*;
 @AllArgsConstructor //khởi tạo all
 @NoArgsConstructor
 public class ReplyDTO {
-    @JsonProperty("review_id")
-    private int reviewId; // Đánh giá cần trả lời
 
     private String content;
 
-    @JsonProperty("user_id")
-    private int userId;
+ 
 }

@@ -10,6 +10,7 @@ import com.example.shopapp_api.entities.cart.CartItem;
 import com.example.shopapp_api.services.Impl.cart.ICartServices;
 import com.example.shopapp_api.services.Serv.cart.CartService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,7 +51,7 @@ public class CartController {
             CartResponse updatedCart = cartService.updateQuantity(cartItemId, cartItemDTO);
             return ResponseEntity.ok(new ApiResponse<>("Cập nhật giỏ hàng thành công", updatedCart));
         } catch (Exception e) {
-            return ResponseEntity.ok(new ApiResponse<>("Cập nhật thất bại", null));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse<>("Cập nhật thất bại", null));
         }
     }
 }

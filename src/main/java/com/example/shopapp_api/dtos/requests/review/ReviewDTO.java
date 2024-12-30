@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import java.util.List;
+
 @Data
 @Builder
 @Getter
@@ -16,10 +18,10 @@ public class ReviewDTO {
 
     @JsonProperty("comment")
     @Size(max = 200, message = "Comment must not exceed 200 characters")
-    private String comment;
+    private List<String> comment;
 
     @JsonProperty("rating")
-    private Integer rating;
+    private List<Integer> rating;
 
     @JsonProperty("user_id")
     private int userId;
@@ -28,7 +30,7 @@ public class ReviewDTO {
     private int orderId;
 
     @JsonProperty("product_id")
-    private int productId;
+    private List<Integer> productId;
 
 //
 //    @JsonProperty("product_id")

@@ -10,12 +10,12 @@ import java.util.List;
 public interface ISubCategoryService {
     SubCategory createSubCategory(SubCategoryDTO subCategoryDTO) throws DataNotFoundException;
 
-    SubCategory getSubCategoryById(int id) throws DataNotFoundException;
+    SubCategoryResponse getSubCategoryById(int id) throws DataNotFoundException;
 
 //    List<SubCategory> getAllSubCategory();
 
     List<SubCategoryResponse> getAllSubCategory();
-    
+
     List<SubCategory> getSubCategoryByCategoryId(int categoryId);
 
     void deleteSubCategory(int id);

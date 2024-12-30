@@ -13,7 +13,7 @@ import lombok.*;
 import java.util.List;
 
 @Entity
-@Table(name = "product_details")
+@Table(name = "chi_tiet_san_pham")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -23,28 +23,29 @@ import java.util.List;
 public class ProductDetail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)//id tự dong759 tăng
+    @Column(name = "ma_chi_tiet_san_pham")
     private int id;
 
-    @JoinColumn(name = "sku_name")
+    @Column(name = "ten_sku")
     private String skuName;
 
-    @JoinColumn(name = "sku_version")
+    @Column(name = "phien_ban_sku")
     private String skuVersion;
 
-    @JoinColumn(name = "quantity")
-    private int quantity;
+    @Column(name = "so_luong")
+    private Integer quantity;
 
     @ManyToOne
-    @JoinColumn(name = "product_id")
+    @JoinColumn(name = "ma_san_pham")
     @JsonBackReference // bỏ qua id tránh lập lại
     private Product product;
 
     @ManyToOne
-    @JoinColumn(name = "color_id")
+    @JoinColumn(name = "ma_mau_sac")
     private Color color;
 
     @ManyToOne
-    @JoinColumn(name = "size_id")
+    @JoinColumn(name = "ma_kich_thuoc")
     private Size size;
 
     @OneToMany(mappedBy = "productDetail")

@@ -6,7 +6,7 @@ import lombok.*;
 
 import java.util.Date;
 
-@Table(name = "coupon_usages")
+@Table(name = "phieu_su_dung")
 @Entity
 @Builder
 @Getter
@@ -17,18 +17,19 @@ public class CouponUsage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ma_phieu_su_dung")
     private int id;
 
     @ManyToOne
-    @JoinColumn(name = "coupon_id", nullable = false)
+    @JoinColumn(name = "ma_giam_gia")
     private Coupon coupon;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "ma_nguoi_dung")
     private User user;
 
-    @Column(name = "used_at", nullable = false)
-    private Date usedAt;
+    @Column(name = "so_lan_su_dung")
+    private Integer usageCount;
 
 
 }

@@ -79,6 +79,9 @@ public class OrderResponse extends BaseResponse {
     @JsonProperty("address")
     private Address address;
 
+    @JsonProperty("total_money_after_discount")
+    private Float totalMoneyAfterDiscount;
+
 
     public static OrderResponse formOrder(Order order) {
         DecimalFormat formatter = new DecimalFormat("#,###");
@@ -137,6 +140,7 @@ public class OrderResponse extends BaseResponse {
                 .paymentStatus(order.getPaymentStatus())
                 .statusDisplayPayment(order.getPaymentStatus().getStatusDisplayPayment())
                 .address(order.getAddress())
+                .totalMoneyAfterDiscount(order.getTotalMoneyAfterDiscount())
                 .build();
 
         return orderResponse;

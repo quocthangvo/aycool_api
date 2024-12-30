@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -94,43 +95,95 @@ public class ReviewService implements IReviewService {
     }
 
 
+//    @Transactional
+//    @Override
+//    public Review createReview(ReviewDTO reviewDTO) {
+//        // Fetch the order and product details
+//        Order order = orderRepository.findById(reviewDTO.getOrderId()).orElseThrow(() -> new RuntimeException("Order not found"));
+//        Product product = productRepository.findById(reviewDTO.getProductId()).orElseThrow(() -> new RuntimeException("Product not found"));
+//
+//        // Kiểm tra trạng thái của đơn hàng (phải là 'DELIVERED' mới được đánh giá)
+//        if (order.getStatus() != OrderStatus.DELIVERED) {
+//            throw new IllegalArgumentException("Đơn hàng phải được giao mới có thể đánh giá");
+//        }
+//
+//        // Kiểm tra xem người dùng có phải là người đã đặt đơn hàng này không
+//        if (order.getUser().getId() != reviewDTO.getUserId()) {
+//            throw new IllegalArgumentException("Người dùng không có quyền đánh giá đơn hàng này");
+//        }
+//
+//        // Kiểm tra xem người dùng đã đánh giá sản phẩm này trong đơn hàng chưa
+//        boolean alreadyReviewed = reviewRepository.existsByOrderIdAndProductIdAndUserId(
+//                reviewDTO.getOrderId(), reviewDTO.getProductId(), reviewDTO.getUserId()
+//        );
+//        if (alreadyReviewed) {
+//            throw new IllegalArgumentException("Bạn đã đánh giá sản phẩm này trong đơn hàng này");
+//        }
+//
+//        // Create the review entity
+//        Review review = new Review();
+//        review.setUser(order.getUser());
+//        review.setOrder(order);
+//        review.setProduct(product);
+//        review.setRating(reviewDTO.getRating());
+//        review.setComment(reviewDTO.getComment());
+//        review.setCreatedAt(LocalDateTime.now());
+//
+//        // Save the review
+//        return reviewRepository.save(review);
+//    }
+
     @Transactional
     @Override
-    public Review createReview(ReviewDTO reviewDTO) {
-        // Fetch the order and product details
-        Order order = orderRepository.findById(reviewDTO.getOrderId()).orElseThrow(() -> new RuntimeException("Order not found"));
-        Product product = productRepository.findById(reviewDTO.getProductId()).orElseThrow(() -> new RuntimeException("Product not found"));
+    public List<Review> createReview(ReviewDTO reviewDTO) {
+        // Lấy đơn hàng
+        Order order = orderRepository.findById(reviewDTO.getOrderId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
 
-        // Kiểm tra trạng thái của đơn hàng (phải là 'DELIVERED' mới được đánh giá)
+        // Kiểm tra đơn hàng đã được giao hay chưa
         if (order.getStatus() != OrderStatus.DELIVERED) {
             throw new IllegalArgumentException("Đơn hàng phải được giao mới có thể đánh giá");
         }
 
-        // Kiểm tra xem người dùng có phải là người đã đặt đơn hàng này không
+        // Kiểm tra người dùng có phải là người đã đặt đơn hàng này không
         if (order.getUser().getId() != reviewDTO.getUserId()) {
             throw new IllegalArgumentException("Người dùng không có quyền đánh giá đơn hàng này");
         }
 
-        // Kiểm tra xem người dùng đã đánh giá sản phẩm này trong đơn hàng chưa
-        boolean alreadyReviewed = reviewRepository.existsByOrderIdAndProductIdAndUserId(
-                reviewDTO.getOrderId(), reviewDTO.getProductId(), reviewDTO.getUserId()
-        );
-        if (alreadyReviewed) {
-            throw new IllegalArgumentException("Bạn đã đánh giá sản phẩm này trong đơn hàng này");
+        List<Review> reviews = new ArrayList<>();
+
+        // Duyệt qua danh sách productId và tạo đánh giá cho từng sản phẩm
+        for (int i = 0; i < reviewDTO.getProductId().size(); i++) {
+            Integer productId = reviewDTO.getProductId().get(i);
+            String comment = reviewDTO.getComment().get(i); // Lấy comment tương ứng
+            Integer rating = reviewDTO.getRating().get(i);
+            // Lấy thông tin sản phẩm
+            Product product = productRepository.findById(productId)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
+
+            // Kiểm tra xem người dùng đã đánh giá sản phẩm này trong đơn hàng chưa
+            boolean alreadyReviewed = reviewRepository.existsByOrderIdAndProductIdAndUserId(
+                    reviewDTO.getOrderId(), productId, reviewDTO.getUserId());
+            if (alreadyReviewed) {
+                throw new IllegalArgumentException("Bạn đã đánh giá sản phẩm này trong đơn hàng này");
+            }
+
+            // Tạo đối tượng đánh giá
+            Review review = new Review();
+            review.setUser(order.getUser());
+            review.setOrder(order);
+            review.setProduct(product);
+            review.setRating(rating);
+            review.setComment(comment);
+            review.setCreatedAt(LocalDateTime.now());
+            review.setStatus(true);
+            // Lưu và thêm vào danh sách reviews
+            reviews.add(reviewRepository.save(review));
         }
 
-        // Create the review entity
-        Review review = new Review();
-        review.setUser(order.getUser());
-        review.setOrder(order);
-        review.setProduct(product);
-        review.setRating(reviewDTO.getRating());
-        review.setComment(reviewDTO.getComment());
-        review.setCreatedAt(LocalDateTime.now());
-
-        // Save the review
-        return reviewRepository.save(review);
+        return reviews;
     }
+
 
     @Override
     public boolean hasReviewed(Long orderId, Long userId) {

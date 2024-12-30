@@ -7,7 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity //đê biết là thực thể
-@Table(name = "cart_items")
+@Table(name = "chi_tiet_gio_hang")
 @Data
 @Getter
 @Setter
@@ -17,16 +17,18 @@ import lombok.*;
 public class CartItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ma_chi_tiet_gio_hang")
     private int id;
 
     @ManyToOne
-    @JsonBackReference
-    @JoinColumn(name = "cart_id")
+    @JsonBackReference("cart-items")
+    @JoinColumn(name = "ma_gio_hang")
     private Cart cart;
 
     @ManyToOne
-    @JoinColumn(name = "product_detail_id")
+    @JoinColumn(name = "ma_chi_tiet_san_pham")
     private ProductDetail productDetail;
 
+    @Column(name = "so_luong")
     private int quantity;
 }

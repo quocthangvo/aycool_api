@@ -24,7 +24,7 @@ public interface IReviewService {
 
     void saveReview(Review review);
 
-    Review createReview(ReviewDTO reviewDTO);
+//    Review createReview(ReviewDTO reviewDTO);
 
     Long getTotalStars(int productId);
 
@@ -32,4 +32,6 @@ public interface IReviewService {
 
     // all đánh giá
     Page<ReviewResponse> getReviews(int productId, int page, int limit);
+
+    List<Review> createReview(ReviewDTO reviewDTO);
 }

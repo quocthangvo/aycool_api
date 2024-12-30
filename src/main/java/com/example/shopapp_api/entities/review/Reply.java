@@ -7,7 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "replies")
+@Table(name = "phan_hoi")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -17,18 +17,11 @@ import lombok.*;
 public class Reply extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ma")
     private int id;
 
-    @Column(name = "content", columnDefinition = "TEXT")
+    @Column(name = "noi_dung", columnDefinition = "TEXT")
     private String content;
 
-    @ManyToOne
-    @JsonBackReference
-    @JoinColumn(name = "review_id")
-    private Review review;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
 
 }

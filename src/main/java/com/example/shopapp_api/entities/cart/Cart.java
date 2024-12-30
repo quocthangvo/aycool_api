@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity //đê biết là thực thể
-@Table(name = "carts")
+@Table(name = "gio_hang")
 @Data
 @Getter
 @Setter
@@ -20,14 +20,15 @@ import java.util.List;
 public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)//id tự động tăng
+    @Column(name = "ma_gio_hang")
     private int id;
 
     @OneToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "ma_nguoi_dung")
     private User user;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @JsonManagedReference("cart-items")
     private List<CartItem> items = new ArrayList<>();
 
 }

@@ -65,4 +65,10 @@ public class OrderDTO {
 
     @JsonProperty("order_id")
     private String orderId;
+
+    @JsonProperty("coupon_id")
+    private Integer couponId;
+
+    @JsonProperty("total_money_after_discount")
+    private Float totalMoneyAfterDiscount;
 }
