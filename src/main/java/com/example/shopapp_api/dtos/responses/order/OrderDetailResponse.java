@@ -53,7 +53,6 @@ public class OrderDetailResponse {
                 .id(orderDetail.getId())
                 .orderId(orderDetail.getOrder().getId())
                 .productDetailId(orderDetail.getProductDetail().getId())
-//                .price(orderDetail.getPrice())
                 .quantity(orderDetail.getQuantity())
                 .totalMoney(orderDetail.getTotalMoney())
                 .productId(orderDetail.getProductDetail().getProduct().getId())

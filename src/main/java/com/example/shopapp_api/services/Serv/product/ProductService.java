@@ -95,6 +95,15 @@ public class ProductService implements IProductService {
 
                 String skuName = newProduct.getName() + "-" + existingColor.getName() + "-" + existingSize.getName();
 
+                // Lấy số lượng từ DTO, nếu không có thì mặc định là 0
+                // Xây dựng key từ colorId và sizeId
+                String key = color + "-" + size;
+
+                // Lấy số lượng từ quantities map trong DTO, nếu không có thì mặc định là 0
+                int quantity = productDTO.getQuantity() != null && productDTO.getQuantity().containsKey(key)
+                        ? productDTO.getQuantity().get(key)
+                        : 0;
+
                 ProductDetail newProductDetail =
                         ProductDetail.builder()
                                 .product(newProduct)
@@ -102,7 +111,7 @@ public class ProductService implements IProductService {
                                 .size(existingSize)
                                 .skuVersion(skuVersion)
                                 .skuName(skuName)
-                                .quantity(0)
+                                .quantity(quantity)
                                 .build();
                 productDetailRepository.save(newProductDetail);
             }

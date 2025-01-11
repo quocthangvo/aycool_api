@@ -43,7 +43,8 @@ public interface IProductService {
                                                    List<Integer> sizeIds,
                                                    List<Integer> materialIds,
 
-                                                   Pageable pageable);
+                                                   Pageable pageable
+    );
 
     Page<ProductResponse> searchProductsByNameAndSubCategory(String name, Integer subCategoryId, Pageable pageable);
 }

@@ -5,6 +5,7 @@ import com.example.shopapp_api.entities.attributes.Size;
 import com.example.shopapp_api.entities.cart.CartItem;
 import com.example.shopapp_api.entities.prices.Price;
 import com.example.shopapp_api.entities.review.Review;
+import com.example.shopapp_api.entities.warehouse.Warehouse;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -52,6 +53,17 @@ public class ProductDetail {
     @JsonManagedReference
     private List<Price> prices;
 
+//    @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+////    @JsonManagedReference
+//    private List<Warehouse> warehouses;
+
+//    @OneToMany(mappedBy = "productDetail") // Một chi tiết sản phẩm có thể được lưu trữ trong nhiều kho
+//    @JsonManagedReference
+//    private List<Warehouse> warehouses;
+
+//    @ManyToOne
+//    @JoinColumn(name = "ma_kho")
+//    private Warehouse warehouse;
 
 //    //cart
 //    @OneToMany(mappedBy = "productDetail")

@@ -142,6 +142,18 @@ public class WebSecurityConfig {
                             .requestMatchers(DELETE, String.format("%s/coupons/**", apiPrefix)).hasRole(Role.ADMIN)
                             .requestMatchers(PUT, String.format("%s/coupons/**", apiPrefix)).hasRole(Role.ADMIN)
 
+                            //warehouse
+                            .requestMatchers(POST, String.format("%s/warehouse/**", apiPrefix)).hasRole(Role.ADMIN)
+                            .requestMatchers(GET, String.format("%s/warehouse/**", apiPrefix)).permitAll()
+                            .requestMatchers(DELETE, String.format("%s/warehouse/**", apiPrefix)).hasRole(Role.ADMIN)
+                            .requestMatchers(PUT, String.format("%s/warehouse/**", apiPrefix)).hasRole(Role.ADMIN)
+
+                            //purchases
+                            .requestMatchers(POST, String.format("%s/purchases/**", apiPrefix)).hasRole(Role.ADMIN)
+                            .requestMatchers(GET, String.format("%s/purchases/**", apiPrefix)).permitAll()
+                            .requestMatchers(DELETE, String.format("%s/purchases/**", apiPrefix)).hasRole(Role.ADMIN)
+                            .requestMatchers(PUT, String.format("%s/purchases/**", apiPrefix)).hasRole(Role.ADMIN)
+
                             //upload ảnh hiển thị
                             .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
 

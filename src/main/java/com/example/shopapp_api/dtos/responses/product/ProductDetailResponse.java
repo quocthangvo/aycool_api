@@ -6,6 +6,7 @@ import com.example.shopapp_api.entities.prices.Price;
 import com.example.shopapp_api.entities.products.Product;
 import com.example.shopapp_api.entities.products.ProductDetail;
 import com.example.shopapp_api.entities.products.ProductImage;
+import com.example.shopapp_api.entities.warehouse.Warehouse;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
@@ -42,11 +43,19 @@ public class ProductDetailResponse {
     @JsonProperty("sku_name")
     private String skuName;
 
+    @JsonProperty("warehouse_quantity")
+    private int warehouseQuantity; // Số lượng trong kho
+
 //    @JsonProperty("image_url")
 //    private List<ProductImage> imageUrl;
 
 
     public static ProductDetailResponse formProductDetail(ProductDetail productDetail) {
+
+//        // Tính tổng số lượng từ tất cả các Warehouse liên kết với ProductDetail
+//        int totalQuantity = productDetail.getWarehouses().stream()
+//                .mapToInt(Warehouse::getQuantity)
+//                .sum();
 
         ProductDetailResponse productDetailResponse = ProductDetailResponse.builder()
                 .id(productDetail.getId())
@@ -57,6 +66,7 @@ public class ProductDetailResponse {
                 .quantity(productDetail.getQuantity())
                 .priceId(productDetail.getPrices())
                 .skuName(productDetail.getSkuName())
+//                .warehouseQuantity(totalQuantity)
 //                .imageUrl(productDetail.getProduct().getProductImages())
                 .build();
 

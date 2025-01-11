@@ -19,6 +19,9 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class PriceResponse extends BaseResponse {
+
+    private int id;
+
     @JsonProperty("selling_price")
     private Float sellingPrice;
 
@@ -46,6 +49,7 @@ public class PriceResponse extends BaseResponse {
     public static PriceResponse formPrice(Price price) {
         PriceResponse priceResponse = PriceResponse
                 .builder()
+                .id(price.getId())
                 .sellingPrice(price.getSellingPrice())
                 .promotionPrice(price.getPromotionPrice())
                 .startDate(price.getStartDate())

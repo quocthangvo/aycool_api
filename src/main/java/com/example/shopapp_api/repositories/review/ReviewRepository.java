@@ -25,4 +25,9 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
     boolean existsByOrderIdAndUserId(Long orderId, Long userId);
 
     Page<Review> findByProductIdAndStatus(int productId, boolean status, Pageable pageable);
+
+    // Truy vấn để lấy đánh giá theo productId và rating
+    Page<Review> findByProductIdAndRating(int productId, int rating, Pageable pageable);
+
+    long countByProductId(int productId);  // Trả về tổng số đánh giá cho sản phẩm
 }

@@ -3,7 +3,9 @@ package com.example.shopapp_api.repositories.order;
 import com.example.shopapp_api.entities.orders.Order;
 import com.example.shopapp_api.entities.orders.OrderDetail;
 import com.example.shopapp_api.entities.products.ProductDetail;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,4 +20,11 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Intege
 
     // Kiểm tra sản phẩm có trong đơn hàng hay không
     boolean existsByOrderIdAndProductDetail_Id(Long orderId, Long productDetailId);
+
+    List<OrderDetail> findAll();
+
+    Optional<OrderDetail> findById(int id);
+
+    // Tìm tất cả OrderDetail theo productDetailId
+    List<OrderDetail> findByProductDetailId(int productDetailId);
 }

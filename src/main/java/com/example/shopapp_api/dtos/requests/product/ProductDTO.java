@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.util.List;
+import java.util.Map;
 
 
 @Data
@@ -41,6 +42,8 @@ public class ProductDTO {
 
     @JsonProperty("colors")
     private List<Integer> colorId;
+
+    private Map<String, Integer> quantity;
 
 //    @JsonProperty("version_sku")
 //    private String versionSku;

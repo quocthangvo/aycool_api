@@ -45,7 +45,8 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
                                         @Param("colorId") Integer colorId,
                                         @Param("sizeIds") List<Integer> sizeIds,
                                         @Param("materialIds") List<Integer> materialIds,
-                                        Pageable pageable);
+                                        Pageable pageable
+    );
 
 
     // Tìm sản phẩm theo subCategoryId

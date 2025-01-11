@@ -17,7 +17,6 @@ public interface IReviewService {
 
     Page<ReviewResponse> getReviewsForProduct(int productId, int page, int limit);
 
-
     void deleteReview(int id) throws DataNotFoundException;
 
     Review findReviewById(int reviewId) throws DataNotFoundException;
@@ -34,4 +33,8 @@ public interface IReviewService {
     Page<ReviewResponse> getReviews(int productId, int page, int limit);
 
     List<Review> createReview(ReviewDTO reviewDTO);
+
+    Page<ReviewResponse> getAllReviews(int productId, int page, int limit, Integer rating);
+
+    long getTotalReviews(int productId);
 }

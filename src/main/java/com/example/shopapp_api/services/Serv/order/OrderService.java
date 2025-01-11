@@ -1,6 +1,7 @@
 package com.example.shopapp_api.services.Serv.order;
 
 import com.example.shopapp_api.dtos.requests.order.OrderDTO;
+import com.example.shopapp_api.dtos.requests.order.OrderStatsDTO;
 import com.example.shopapp_api.dtos.requests.order.OrderStatusDTO;
 import com.example.shopapp_api.dtos.responses.order.OrderResponse;
 import com.example.shopapp_api.dtos.responses.order.StatusResponse;
@@ -16,6 +17,7 @@ import com.example.shopapp_api.entities.orders.status.PaymentStatus;
 import com.example.shopapp_api.entities.prices.Price;
 import com.example.shopapp_api.entities.products.ProductDetail;
 import com.example.shopapp_api.entities.users.User;
+import com.example.shopapp_api.entities.warehouse.Warehouse;
 import com.example.shopapp_api.exceptions.DataNotFoundException;
 import com.example.shopapp_api.repositories.cart.CartRepository;
 import com.example.shopapp_api.repositories.coupon.CouponRepository;
@@ -26,6 +28,7 @@ import com.example.shopapp_api.repositories.product.ProductDetailRepository;
 import com.example.shopapp_api.repositories.user.AddressRepository;
 import com.example.shopapp_api.repositories.order.OrderRepository;
 import com.example.shopapp_api.repositories.user.UserRepository;
+import com.example.shopapp_api.repositories.warehouse.WarehouseRepository;
 import com.example.shopapp_api.services.Impl.order.IOrderService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -36,9 +39,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -57,6 +63,7 @@ public class OrderService implements IOrderService {
     private final CartRepository cartRepository;
     private final CouponRepository couponRepository;
     private final CouponUsageRepository couponUsageRepository;
+    private final WarehouseRepository warehouseRepository;
 
 //    @Override
 //    public OrderResponse createOrder(OrderDTO orderDTO) throws DataNotFoundException {
@@ -281,9 +288,9 @@ public class OrderService implements IOrderService {
 
             existingOrder.setStatus(newStatus);
 //            // Kiểm tra nếu trạng thái mới là "Đã giao hàng" (DELIVERED), thì cập nhật trạng thái thanh toán là "PAID"
-//            if (newStatus == OrderStatus.DELIVERED) {
-//                existingOrder.setPaymentStatus(PaymentStatus.PAID);
-//            }
+            //            if (newStatus == OrderStatus.DELIVERED) {
+            //                existingOrder.setPaymentStatus(PaymentStatus.PAID);
+            //            }
             // Cập nhật ngày tương ứng với trạng thái mới
             LocalDateTime now = LocalDateTime.now();
             switch (newStatus) {
@@ -299,6 +306,23 @@ public class OrderService implements IOrderService {
                     break;
                 case CANCELLED:
                     existingOrder.setCancelledDate(now);
+
+                    // Hủy số lượng đã bán và cập nhật remainingQuantity
+                    for (OrderDetail orderDetail : existingOrder.getOrderDetails()) {
+                        ProductDetail productDetail = orderDetail.getProductDetail();
+                        List<Warehouse> warehouses = warehouseRepository.findByProductDetail(productDetail);
+
+                        for (Warehouse warehouse : warehouses) {
+                            int newSellQuantity = warehouse.getSellQuantity() - orderDetail.getQuantity();  // Trừ số lượng bán ra
+                            warehouse.setSellQuantity(newSellQuantity);
+
+                            // Cập nhật remainingQuantity sau khi hủy
+                            int newRemainingQuantity = warehouse.getQuantity() + newSellQuantity;
+                            warehouse.setRemainingQuantity(newRemainingQuantity);
+
+                            warehouseRepository.save(warehouse);  // Lưu thay đổi vào cơ sở dữ liệu
+                        }
+                    }
                     break;
                 default:
                     break;
@@ -413,6 +437,20 @@ public class OrderService implements IOrderService {
                 orderDetailRepository.save(orderDetail);
 
                 orderDetails.add(orderDetail);
+
+
+                // Cập nhật số lượng bán (sellQuantity) và tính lại remainingQuantity
+                List<Warehouse> warehouses = warehouseRepository.findByProductDetail(productDetail);
+                for (Warehouse warehouse : warehouses) {
+                    int newSellQuantity = warehouse.getSellQuantity() + cartItem.getQuantity();  // Cộng số lượng bán vào
+                    warehouse.setSellQuantity(newSellQuantity);
+
+                    // Cập nhật remainingQuantity sau khi bán
+                    int newRemainingQuantity = warehouse.getQuantity() - warehouse.getSellQuantity();
+                    warehouse.setRemainingQuantity(newRemainingQuantity);
+
+                    warehouseRepository.save(warehouse);  // Lưu thay đổi vào cơ sở dữ liệu
+                }
             }
         }
 
@@ -438,17 +476,23 @@ public class OrderService implements IOrderService {
                 throw new DataNotFoundException("Giá trị đơn hàng chưa đủ để sử dụng mã giảm giá");
             }
 
+            // Tính toán tổng tiền sau giảm giá
+
             if (coupon.getDiscountType() == DiscountType.PERCENT) {
                 float discountAmount = totalMoney * (coupon.getDiscountValue() / 100);
                 totalMoneyAfterDiscount -= discountAmount;
             } else if (coupon.getDiscountType() == DiscountType.FIXED_AMOUNT) {
                 totalMoneyAfterDiscount -= coupon.getDiscountValue();
             }
+
+
+            // Cập nhật tổng tiền cho đơn hàng
+            order.setTotalMoneyAfterDiscount(totalMoneyAfterDiscount); // cập nhật tiền sau giảm giá
+
+        } else {
+            // Nếu không có mã giảm giá, không lưu totalMoneyAfterDiscount
+            order.setTotalMoneyAfterDiscount(null); // Hoặc bỏ qua nếu không cần trường này
         }
-
-        // Cập nhật tổng tiền cho đơn hàng
-        order.setTotalMoneyAfterDiscount(totalMoneyAfterDiscount); // cập nhật tiền sau giảm giá
-
 //        order.setTotalMoney(totalMoney);
         order.setOrderDetails(orderDetails);
         orderRepository.save(order);
@@ -535,34 +579,58 @@ public class OrderService implements IOrderService {
         return Math.max(0, totalMoney - discountValue);
     }
 
-//    private void checkCouponUsageLimit(int userId, int couponId) {
-//        // Tìm kiếm mã giảm giá theo couponId
-//        Coupon coupon = couponRepository.findById(couponId)
-//                .orElseThrow(() -> new IllegalArgumentException("Mã giảm giá không hợp lệ."));
-//
-//        // Tìm kiếm người dùng theo userId
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new IllegalArgumentException("Người dùng không tồn tại."));
-//
-//        // Tìm kiếm bản ghi sử dụng mã giảm giá của người dùng hoặc tạo mới với số lần sử dụng là 0
-//        CouponUsage couponUsage = couponUsageRepository.findByUserAndCoupon(user, coupon)
-//                .orElse(new CouponUsage(coupon, user, 0));
-//
-//        // Lấy giới hạn số lần sử dụng từ Coupon
-//        int usageLimit = coupon.getUsageLimit(); // Lấy từ Coupon
-//
-//        // Kiểm tra nếu người dùng đã sử dụng hết số lần có thể dùng mã này
-//        if (couponUsage.getUsageCount() >= usageLimit) {
-//            throw new IllegalArgumentException("Bạn đã sử dụng mã giảm giá này hết số lần cho phép.");
-//        }
-//
-//        // Tăng số lần sử dụng mã giảm giá
-//        couponUsage.incrementUsageCount();
-//
-//        // Lưu bản ghi sử dụng mã giảm giá
-//        couponUsageRepository.save(couponUsage);
-//    }
+    @Override
+    public Map<String, Object> getFormattedTotalMoneyForAllOrders() {
+        // Tính tổng doanh thu của các đơn hàng đã thanh toán
+        Double totalMoney = 0.0;
+        Double totalMoneyAfterDiscount = 0.0;
 
+        //tổng doanh thu
+//        Double totalMoney = orderRepository.calculateTotalMoneyForAllOrders();
+//        // Tính tổng số đơn hàng
+//        Long totalOrders = orderRepository.count();
+
+        // Tính tổng doanh thu của các đơn hàng đã thanh toán
+//        Double totalMoney = orderRepository.calculateTotalMoneyByPaymentStatus(PaymentStatus.PAID);
+
+        // Tính tổng số đơn hàng đã thanh toán
+        Long totalOrders = orderRepository.countByPaymentStatus(PaymentStatus.PAID);
+
+        // Tính tổng doanh thu của các đơn hàng đã thanh toán
+        List<Order> paidOrders = orderRepository.findAllByPaymentStatus(PaymentStatus.PAID);
+        for (Order order : paidOrders) {
+            if (order.getTotalMoneyAfterDiscount() != null) {
+                totalMoneyAfterDiscount += order.getTotalMoneyAfterDiscount();  // Dùng nếu có totalMoneyAfterDiscount
+            } else {
+                totalMoney += order.getTotalMoney();  // Dùng nếu không có totalMoneyAfterDiscount
+            }
+        }
+
+        // Cộng tổng
+        totalMoney += totalMoneyAfterDiscount;
+        
+
+        // Định dạng tổng doanh thu dưới dạng chuỗi
+//        DecimalFormat decimalFormat = new DecimalFormat("#,###.##");
+//        String formattedTotalMoney = decimalFormat.format(totalMoney);
+        Map<String, Object> response = new HashMap<>();
+        response.put("totalMoney", totalMoney);
+        response.put("totalOrders", totalOrders);
+
+        return response;
+    }
+
+    // đơn hàng theo ngày
+    @Override
+    public Long getTotalOrdersToday() {
+        return orderRepository.countTodayOrders();
+    }
+
+
+    @Override
+    public Double getTotalPaidOrders() {
+        return orderRepository.calculateTotalPaidOrdersToday();
+    }
 
 }
 

@@ -1,13 +1,16 @@
 package com.example.shopapp_api.repositories.order;
 
+import com.example.shopapp_api.dtos.requests.order.OrderStatsDTO;
 import com.example.shopapp_api.entities.orders.Order;
 import com.example.shopapp_api.entities.orders.status.OrderStatus;
+import com.example.shopapp_api.entities.orders.status.PaymentStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -48,4 +51,33 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
 
     Optional<Order> findById(int id);
+
+    //tong tien don hang
+    //    @Query("SELECT SUM(o.totalMoney) FROM Order o WHERE o.active = true")
+//    Double calculateTotalMoneyForAllOrders();
+
+    //tong tien donhang đã thanh toán
+    @Query("SELECT SUM(o.totalMoney) FROM Order o WHERE o.paymentStatus = :paymentStatus")
+    Double calculateTotalMoneyByPaymentStatus(@Param("paymentStatus") PaymentStatus paymentStatus);
+
+    // tong tien co tong tien da giam
+    List<Order> findAllByPaymentStatus(PaymentStatus paymentStatus);
+
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.paymentStatus = :paymentStatus")
+    Long countByPaymentStatus(@Param("paymentStatus") PaymentStatus paymentStatus);
+
+
+    // Tong don hang
+    @Query("SELECT COUNT(o) FROM Order o WHERE DATE(o.OrderDate) = CURRENT_DATE")
+    Long countTodayOrders();
+
+    //tong tien don hang trong ngày
+    @Query("SELECT COALESCE(SUM(CASE WHEN o.totalMoneyAfterDiscount IS NOT NULL THEN " +
+            "o.totalMoneyAfterDiscount ELSE o.totalMoney END), 0) " +
+            "FROM Order o " +
+            "WHERE o.paymentStatus = 'PAID' " +
+            "AND FUNCTION('DATE', o.OrderDate) = CURRENT_DATE")
+    Double calculateTotalPaidOrdersToday();
+
+
 }

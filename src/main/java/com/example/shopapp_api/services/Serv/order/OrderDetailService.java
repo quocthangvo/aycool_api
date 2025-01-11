@@ -17,9 +17,11 @@ import com.example.shopapp_api.repositories.product.ProductDetailRepository;
 import com.example.shopapp_api.repositories.product.ProductRepository;
 import com.example.shopapp_api.services.Impl.order.IOrderDetailService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -124,6 +126,203 @@ public class OrderDetailService implements IOrderDetailService {
 
         // Tạo phản hồi gói
         return new TotalResponse(detailResponses, totalMoney, addressResponse, statusResponse);
+    }
+
+    @Override
+    public OrderDetailResponse getTopSellingProduct() {
+        // Truy vấn tất cả OrderDetails
+        List<OrderDetail> orderDetails = orderDetailRepository.findAll();
+
+        // Tính tổng số lượng bán cho từng sản phẩm
+        Map<Integer, Integer> productSales = new HashMap<>();
+        for (OrderDetail orderDetail : orderDetails) {
+            int productDetailId = orderDetail.getProductDetail().getId();
+            productSales.put(productDetailId, productSales.getOrDefault(productDetailId, 0) + orderDetail.getQuantity());
+        }
+
+        // Sắp xếp các sản phẩm theo số lượng bán (giảm dần)
+        List<Map.Entry<Integer, Integer>> sortedSales = new ArrayList<>(productSales.entrySet());
+        sortedSales.sort((entry1, entry2) -> entry2.getValue().compareTo(entry1.getValue()));
+
+        // Lấy ra sản phẩm bán chạy nhất
+        if (sortedSales.isEmpty()) {
+            return null; // Không có sản phẩm nào
+        }
+
+        // Lấy productDetailId của sản phẩm bán chạy nhất
+        int topSellingProductDetailId = sortedSales.get(0).getKey();
+
+        // Truy vấn OrderDetail của sản phẩm bán chạy nhất
+        List<OrderDetail> topSellingOrderDetails = orderDetailRepository.findByProductDetailId(topSellingProductDetailId);
+
+        // Trả về OrderDetailResponse
+        if (!topSellingOrderDetails.isEmpty()) {
+            // Lấy sản phẩm bán ít nhất từ danh sách OrderDetail
+            return OrderDetailResponse.formOrderDetail(topSellingOrderDetails.get(0)); // Chỉ trả về 1 OrderDetail (nếu cần)
+        } else {
+            throw new RuntimeException("No OrderDetail found for productDetailId: " + topSellingOrderDetails);
+        }
+    }
+
+    @Override
+    public List<OrderDetailResponse> getTopSellingProducts() {
+        // Truy vấn tất cả OrderDetails
+        List<OrderDetail> orderDetails = orderDetailRepository.findAll();
+
+        // Tính tổng số lượng bán cho từng sản phẩm (cộng dồn số lượng)
+        Map<Integer, Integer> productSales = new HashMap<>();
+        for (OrderDetail orderDetail : orderDetails) {
+            int productDetailId = orderDetail.getProductDetail().getId();
+            productSales.put(productDetailId, productSales.getOrDefault(productDetailId, 0) + orderDetail.getQuantity());
+        }
+
+        // Sắp xếp các sản phẩm theo số lượng bán (giảm dần)
+        List<Map.Entry<Integer, Integer>> sortedSales = new ArrayList<>(productSales.entrySet());
+        sortedSales.sort((entry1, entry2) -> entry2.getValue().compareTo(entry1.getValue()));
+
+        // Lưu trữ các sản phẩm bán chạy nhất
+        List<OrderDetailResponse> topSellingProducts = new ArrayList<>();
+        Set<Integer> processedProductIds = new HashSet<>(); // Lưu các productId đã xử lý
+
+        // Lấy ra tối đa 3 sản phẩm bán chạy nhất, mỗi sản phẩm phải có productId khác nhau
+        for (int i = 0; i < sortedSales.size(); i++) {
+            int productDetailId = sortedSales.get(i).getKey();
+            int productId = orderDetails.stream()
+                    .filter(od -> od.getProductDetail().getId() == productDetailId)
+                    .map(od -> od.getProductDetail().getProduct().getId())
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Product ID not found for productDetailId: " + productDetailId));
+
+            // Kiểm tra xem sản phẩm này đã được thêm vào danh sách chưa
+            if (!processedProductIds.contains(productId)) {
+                // Lọc tất cả OrderDetails có cùng productId và chọn sản phẩm bán chạy nhất
+                List<OrderDetail> productOrderDetails = orderDetails.stream()
+                        .filter(od -> od.getProductDetail().getProduct().getId() == productId)
+                        .sorted((od1, od2) -> Integer.compare(od2.getQuantity(), od1.getQuantity()))  // Sắp xếp theo số lượng bán
+                        .collect(Collectors.toList());
+
+                // Lấy tất cả ProductDetails của cùng một sản phẩm
+                for (OrderDetail orderDetail : productOrderDetails) {
+                    int currentProductDetailId = orderDetail.getProductDetail().getId();
+
+                    // Chuyển đổi OrderDetail sang OrderDetailResponse
+                    OrderDetailResponse orderDetailResponse = OrderDetailResponse.formOrderDetail(orderDetail);
+
+                    // Thêm vào danh sách sản phẩm bán chạy nếu chưa có
+                    if (!processedProductIds.contains(productId)) {
+                        topSellingProducts.add(orderDetailResponse);
+                        processedProductIds.add(productId); // Đánh dấu là đã xử lý productId này
+                    }
+
+                    // Dừng lại khi đủ 3 sản phẩm bán chạy khác nhau
+                    if (topSellingProducts.size() >= 3) {
+                        return topSellingProducts;
+                    }
+                }
+            }
+        }
+
+        return topSellingProducts;
+    }
+
+
+    @Override
+    public OrderDetailResponse getLowSellingProduct() {
+        // Truy vấn tất cả OrderDetails
+        List<OrderDetail> orderDetails = orderDetailRepository.findAll();
+
+        // Tính tổng số lượng bán cho từng sản phẩm
+        Map<Integer, Integer> productSales = new HashMap<>();
+        for (OrderDetail orderDetail : orderDetails) {
+            int productDetailId = orderDetail.getProductDetail().getId();
+            // Cộng dồn số lượng sản phẩm theo productDetailId
+            productSales.put(productDetailId, productSales.getOrDefault(productDetailId, 0) + orderDetail.getQuantity());
+        }
+
+        // Sắp xếp các sản phẩm theo số lượng bán (tăng dần) để lấy sản phẩm bán ít nhất
+        List<Map.Entry<Integer, Integer>> sortedSales = new ArrayList<>(productSales.entrySet());
+        sortedSales.sort(Map.Entry.comparingByValue());  // Sắp xếp theo số lượng bán (tăng dần)
+
+        // Lấy ra sản phẩm bán thấp nhất
+        if (sortedSales.isEmpty()) {
+            return null; // Không có sản phẩm nào
+        }
+
+        // Lấy productDetailId của sản phẩm bán thấp nhất
+        int lowSellingProductDetailId = sortedSales.get(0).getKey();
+
+        // Truy vấn OrderDetail của sản phẩm bán thấp nhất
+        List<OrderDetail> lowSellingOrderDetails = orderDetailRepository.findByProductDetailId(lowSellingProductDetailId);
+
+        // Trả về OrderDetailResponse cho sản phẩm bán thấp nhất
+        if (!lowSellingOrderDetails.isEmpty()) {
+            // Lấy sản phẩm bán ít nhất từ danh sách OrderDetail
+            return OrderDetailResponse.formOrderDetail(lowSellingOrderDetails.get(0)); // Chỉ trả về 1 OrderDetail (nếu cần)
+        } else {
+            throw new RuntimeException("No OrderDetail found for productDetailId: " + lowSellingProductDetailId);
+        }
+    }
+
+
+    @Override
+    public List<OrderDetailResponse> getLowSellingProducts() {
+        // Truy vấn tất cả OrderDetails
+        List<OrderDetail> orderDetails = orderDetailRepository.findAll();
+
+        // Tính tổng số lượng bán cho từng sản phẩm (cộng dồn số lượng)
+        Map<Integer, Integer> productSales = new HashMap<>();
+        for (OrderDetail orderDetail : orderDetails) {
+            int productDetailId = orderDetail.getProductDetail().getId();
+            productSales.put(productDetailId, productSales.getOrDefault(productDetailId, 0) + orderDetail.getQuantity());
+        }
+
+        // Sắp xếp các sản phẩm theo số lượng bán (giảm dần)
+        List<Map.Entry<Integer, Integer>> sortedSales = new ArrayList<>(productSales.entrySet());
+        sortedSales.sort(Map.Entry.comparingByValue());
+
+        // Lưu trữ các sản phẩm bán chạy nhất
+        List<OrderDetailResponse> topSellingProducts = new ArrayList<>();
+        Set<Integer> processedProductIds = new HashSet<>(); // Lưu các productId đã xử lý
+
+        // Lấy ra tối đa 3 sản phẩm bán chạy nhất, mỗi sản phẩm phải có productId khác nhau
+        for (int i = 0; i < sortedSales.size(); i++) {
+            int productDetailId = sortedSales.get(i).getKey();
+            int productId = orderDetails.stream()
+                    .filter(od -> od.getProductDetail().getId() == productDetailId)
+                    .map(od -> od.getProductDetail().getProduct().getId())
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Product ID not found for productDetailId: " + productDetailId));
+
+            // Kiểm tra xem sản phẩm này đã được thêm vào danh sách chưa
+            if (!processedProductIds.contains(productId)) {
+                // Lọc tất cả OrderDetails có cùng productId và chọn sản phẩm bán chạy nhất
+                List<OrderDetail> productOrderDetails = orderDetails.stream()
+                        .filter(od -> od.getProductDetail().getProduct().getId() == productId)
+                        .sorted((od1, od2) -> Integer.compare(od2.getQuantity(), od1.getQuantity()))  // Sắp xếp theo số lượng bán
+                        .collect(Collectors.toList());
+
+                // Lấy tất cả ProductDetails của cùng một sản phẩm
+                for (OrderDetail orderDetail : productOrderDetails) {
+                    int currentProductDetailId = orderDetail.getProductDetail().getId();
+
+                    // Chuyển đổi OrderDetail sang OrderDetailResponse
+                    OrderDetailResponse orderDetailResponse = OrderDetailResponse.formOrderDetail(orderDetail);
+
+                    // Thêm vào danh sách sản phẩm bán chạy nếu chưa có
+                    if (!processedProductIds.contains(productId)) {
+                        topSellingProducts.add(orderDetailResponse);
+                        processedProductIds.add(productId); // Đánh dấu là đã xử lý productId này
+                    }
+
+                    // Dừng lại khi đủ 3 sản phẩm bán chạy khác nhau
+                    if (topSellingProducts.size() >= 3) {
+                        return topSellingProducts;
+                    }
+                }
+            }
+        }
+
+        return topSellingProducts;
     }
 
 }

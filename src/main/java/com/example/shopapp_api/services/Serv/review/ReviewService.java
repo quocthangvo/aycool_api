@@ -157,6 +157,11 @@ public class ReviewService implements IReviewService {
             Integer productId = reviewDTO.getProductId().get(i);
             String comment = reviewDTO.getComment().get(i); // Lấy comment tương ứng
             Integer rating = reviewDTO.getRating().get(i);
+
+            // Kiểm tra độ dài của comment
+            if (comment.length() < 3 || comment.length() > 200) {
+                throw new IllegalArgumentException("Comment phải có ít nhất 3 ký tự và không vượt quá 200 ký tự");
+            }
             // Lấy thông tin sản phẩm
             Product product = productRepository.findById(productId)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
@@ -202,6 +207,37 @@ public class ReviewService implements IReviewService {
         Page<ReviewResponse> reviewResponses = reviewsPage.map(review -> ReviewResponse.formReview(review));
 
         return reviewResponses;
+    }
+
+    @Override
+    public Page<ReviewResponse> getAllReviews(int productId, int page, int limit, Integer rating) {
+        Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Order.desc("createdAt"))); // Sắp xếp theo thời gian tạo
+
+        Page<Review> reviewsPage;
+
+        if (rating != null) {
+            // Nếu có rating, lọc các review theo rating
+            if (rating >= 1 && rating <= 5) {
+                reviewsPage = reviewRepository.findByProductIdAndRating(productId, rating, pageable);
+            } else {
+                // Nếu rating không hợp lệ (không phải từ 1 đến 5), trả về danh sách rỗng hoặc tất cả
+                reviewsPage = reviewRepository.findByProductId(productId, pageable);
+            }
+        } else {
+            // Nếu không có rating, lấy tất cả review cho sản phẩm đó
+            reviewsPage = reviewRepository.findByProductId(productId, pageable);
+        }
+
+        // Chuyển các Review thành ReviewResponse
+        Page<ReviewResponse> reviews = reviewsPage.map(review -> ReviewResponse.formReview(review));
+
+        return reviews;
+    }
+
+    @Override
+    public long getTotalReviews(int productId) {
+        // Gọi truy vấn để lấy tổng số đánh giá cho sản phẩm mà không có bộ lọc sao
+        return reviewRepository.countByProductId(productId);  // Giả sử bạn sử dụng JPA repository để đếm tổng số review
     }
 
 

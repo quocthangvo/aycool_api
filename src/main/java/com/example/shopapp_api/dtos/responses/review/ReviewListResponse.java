@@ -16,4 +16,5 @@ public class ReviewListResponse {
     private int totalPages;
     private long totalRecords;
     private long totalStars;
+
 }

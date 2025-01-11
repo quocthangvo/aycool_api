@@ -104,10 +104,35 @@ public class OrderDetailController {
     public ResponseEntity<?> getOrderDetails(@PathVariable int orderId) {
         try {
             TotalResponse response = orderDetailService.getTotal(orderId);
-            return ResponseEntity.ok(new ApiResponse("Thành công", response));
+            return ResponseEntity.ok(new ApiResponse<>("Thành công", response));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new ApiResponse<>("Lỗi: " + e.getMessage(), null));
         }
     }
 
+    @GetMapping("/top-selling")
+    public ResponseEntity<?> getTopSellingProduct() {
+        OrderDetailResponse order = orderDetailService.getTopSellingProduct();
+        return ResponseEntity.ok(new ApiResponse<>("Thành công", order));
+
+    }
+
+    @GetMapping("/top3-selling")
+    public ResponseEntity<ApiResponse<List<OrderDetailResponse>>> getTopSellingProducts() {
+        List<OrderDetailResponse> order = orderDetailService.getTopSellingProducts();
+        return ResponseEntity.ok(new ApiResponse<>("Thành công", order));
+    }
+
+    @GetMapping("/low-selling")
+    public ResponseEntity<?> getLowSellingProduct() {
+        OrderDetailResponse order = orderDetailService.getLowSellingProduct();
+        return ResponseEntity.ok(new ApiResponse<>("Thành công", order));
+
+    }
+
+    @GetMapping("/low3-selling")
+    public ResponseEntity<ApiResponse<List<OrderDetailResponse>>> getLowSellingProducts() {
+        List<OrderDetailResponse> order = orderDetailService.getLowSellingProducts();
+        return ResponseEntity.ok(new ApiResponse<>("Thành công", order));
+    }
 }

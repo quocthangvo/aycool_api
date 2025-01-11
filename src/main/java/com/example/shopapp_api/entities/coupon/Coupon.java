@@ -53,18 +53,18 @@ public class Coupon extends BaseEntity {
     @Column(name = "trang_thai")
     private boolean status;
 
-    @Column(name = "mo_ta_giam_gia")
-    private String discountDescription;
+//    @Column(name = "mo_ta_giam_gia")
+//    private String discountDescription;
 
     // Phương thức này sẽ trả về mô tả loại giảm giá
     public String getDiscountDescription() {
         return discountType != null ? discountType.getDiscountType() : "Không xác định";
     }
 
-    @Column(name = "so_lan_su_dung")
-    private Integer usageCount; // Số lượng đã sử dụng
-
-    @Column(name = "gioi_han_su_dung_moi_nguoi")
-    private Integer maxUsagePerUser; // Số lần tối đa mỗi người dùng có thể sử dụng
+//    @Column(name = "so_lan_su_dung")
+//    private Integer usageCount; // Số lượng đã sử dụng
+//
+//    @Column(name = "gioi_han_su_dung_moi_nguoi")
+//    private Integer maxUsagePerUser; // Số lần tối đa mỗi người dùng có thể sử dụng
 
 }

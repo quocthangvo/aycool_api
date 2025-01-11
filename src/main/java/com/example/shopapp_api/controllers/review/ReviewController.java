@@ -156,4 +156,36 @@ public class ReviewController {
                     .body(new ApiResponse<>("Đã xảy ra lỗi khi lấy danh sách đánh giá", null));
         }
     }
+
+    @GetMapping("/all_filter/{productId}")
+    public ResponseEntity<ApiResponse<ReviewListResponse>> getAllReviews(
+            @PathVariable int productId,
+            @RequestParam int page,
+            @RequestParam int limit,
+            @RequestParam(required = false) Integer rating) {
+
+        // Gọi service để lấy danh sách các review với các tham số phân trang và lọc theo rating
+        Page<ReviewResponse> reviewResponses = reviewService.getAllReviews(productId, page, limit, rating);
+
+        // Lấy tổng số sao từ service
+        Long totalStars = reviewService.getTotalStars(productId);
+
+        int totalPages = reviewResponses.getTotalPages();//lấy ra tổng số trang
+//        long totalRecords = reviewResponses.getTotalElements();
+        long totalRecords = reviewService.getTotalReviews(productId); // Lấy tổng số tất cả đánh giá
+        List<ReviewResponse> reviewList = reviewResponses.getContent();//từ productPgae lấy ra ds các product getContent
+
+
+        ReviewListResponse reviewListResponse = (ReviewListResponse
+                .builder()
+                .reviewResponseList(reviewList)
+                .totalPages(totalPages)
+                .totalRecords(totalRecords)
+                .totalStars(totalStars != null ? totalStars : 0)
+
+                .build());
+        return ResponseEntity.ok(new ApiResponse<>("Thành công", reviewListResponse));
+    }
+
+
 }

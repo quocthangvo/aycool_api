@@ -1,6 +1,7 @@
 package com.example.shopapp_api.controllers.orders;
 
 import com.example.shopapp_api.dtos.requests.order.OrderDTO;
+import com.example.shopapp_api.dtos.requests.order.OrderStatsDTO;
 import com.example.shopapp_api.dtos.requests.order.OrderStatusDTO;
 import com.example.shopapp_api.dtos.responses.apiResponse.ApiResponse;
 import com.example.shopapp_api.dtos.responses.apiResponse.MessageResponse;
@@ -22,9 +23,12 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("${api.prefix}/orders")
@@ -186,4 +190,23 @@ public class OrderController {
     }
 
 
+    @GetMapping("/total-money-order")
+    public ResponseEntity<ApiResponse<Object>> getTotalMoneyForAllOrders() {
+        Object formattedMoney = orderService.getFormattedTotalMoneyForAllOrders();
+
+        return ResponseEntity.ok(new ApiResponse<>(" thành công", formattedMoney));
+    }
+
+    // API tính số lượng đơn hàng và tổng tiền trong ngày
+    @GetMapping("/date-order")
+    public ResponseEntity<ApiResponse<Long>> getTotalOrdersToday() {
+        Long totalOrdersToday = orderService.getTotalOrdersToday();
+        return ResponseEntity.ok(new ApiResponse<>(" thành công", totalOrdersToday));
+    }
+
+    @GetMapping("/paid-order")
+    public ResponseEntity<ApiResponse<Double>> getTotalPaidOrders() {
+        Double totalPaidOrders = orderService.getTotalPaidOrders();
+        return ResponseEntity.ok(new ApiResponse<>(" thành công", totalPaidOrders));
+    }
 }

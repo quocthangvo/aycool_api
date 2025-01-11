@@ -21,4 +21,12 @@ public interface IOrderDetailService {
     OrderDetailResponse updateOrderDetail(int orderId, UpdateOrderDetailDTO updateOrderDetailDTO) throws DataNotFoundException;
 
     TotalResponse getTotal(int orderId);
+
+    OrderDetailResponse getTopSellingProduct();
+
+    List<OrderDetailResponse> getTopSellingProducts();
+
+    OrderDetailResponse getLowSellingProduct(); //sp bán chậm
+
+    List<OrderDetailResponse> getLowSellingProducts();
 }

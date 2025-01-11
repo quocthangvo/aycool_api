@@ -33,7 +33,7 @@ public class Address {
     @Column(name = "quan_huyen")
     private String district;
 
-    @Column(name = "xa")
+    @Column(name = "xa_phuong")
     private String ward;
 
     @ManyToOne
