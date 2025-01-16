@@ -3,6 +3,7 @@ package com.example.shopapp_api.entities.products;
 import com.example.shopapp_api.entities.attributes.Color;
 import com.example.shopapp_api.entities.attributes.Size;
 import com.example.shopapp_api.entities.cart.CartItem;
+import com.example.shopapp_api.entities.orders.OrderDetail;
 import com.example.shopapp_api.entities.prices.Price;
 import com.example.shopapp_api.entities.review.Review;
 import com.example.shopapp_api.entities.warehouse.Warehouse;
@@ -11,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -53,8 +55,16 @@ public class ProductDetail {
     @JsonManagedReference
     private List<Price> prices;
 
+    @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL, orphanRemoval = true)
+//    @JsonManagedReference // Manage the relationship in JSON serialization
+    private List<Warehouse> warehouses = new ArrayList<>();
+
+//    @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL, orphanRemoval = true)
+//    @JsonManagedReference // Manage the relationship in JSON serialization
+//    private List<OrderDetail> orderDetails = new ArrayList<>();
+
 //    @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-////    @JsonManagedReference
+//    @JsonManagedReference
 //    private List<Warehouse> warehouses;
 
 //    @OneToMany(mappedBy = "productDetail") // Một chi tiết sản phẩm có thể được lưu trữ trong nhiều kho

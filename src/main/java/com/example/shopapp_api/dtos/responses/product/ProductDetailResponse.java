@@ -43,8 +43,8 @@ public class ProductDetailResponse {
     @JsonProperty("sku_name")
     private String skuName;
 
-    @JsonProperty("warehouse_quantity")
-    private int warehouseQuantity; // Số lượng trong kho
+    @JsonProperty("remaining_quantity")
+    private Integer remainingQuantity;
 
 //    @JsonProperty("image_url")
 //    private List<ProductImage> imageUrl;
@@ -66,6 +66,7 @@ public class ProductDetailResponse {
                 .quantity(productDetail.getQuantity())
                 .priceId(productDetail.getPrices())
                 .skuName(productDetail.getSkuName())
+              
 //                .warehouseQuantity(totalQuantity)
 //                .imageUrl(productDetail.getProduct().getProductImages())
                 .build();

@@ -2,6 +2,7 @@ package com.example.shopapp_api.services.Serv.warehouse;
 
 import com.example.shopapp_api.dtos.requests.warehouse.PurchaseDTO;
 import com.example.shopapp_api.dtos.requests.warehouse.PurchaseItemDTO;
+import com.example.shopapp_api.dtos.responses.warehouse.purchase.PurchaseResponse;
 import com.example.shopapp_api.entities.products.ProductDetail;
 import com.example.shopapp_api.entities.warehouse.Purchase;
 import com.example.shopapp_api.entities.warehouse.Warehouse;
@@ -66,13 +67,13 @@ public class PurchaseService implements IPurchaseService {
                 warehouse.setProductDetail(productDetail);
                 warehouse.setQuantity(quantity);  // Gán số lượng ban đầu
                 warehouse.setPrice(price);  // Gán giá nhập mới nhất
-
-                // Lấy productId từ ProductDetail
-                warehouse.setProduct(productDetail.getProduct());
+                warehouse.setProduct(productDetail.getProduct()); // Lấy productId từ ProductDetail
 
                 // Tính remainingQuantity khi tạo mới
-                warehouse.setRemainingQuantity(quantity - warehouse.getSellQuantity());
+//                warehouse.setRemainingQuantity(quantity - warehouse.getSellQuantity());
 
+                // Tính remainingQuantity khi tạo mới
+                warehouse.setRemainingQuantity(quantity);
                 // Lưu Warehouse mới vào DB
                 warehouse = warehouseRepository.save(warehouse);
             } else {
@@ -81,12 +82,12 @@ public class PurchaseService implements IPurchaseService {
                 warehouse.setPrice(price);  // Cập nhật giá nhập mới nhất
 
                 // Tính remainingQuantity khi cập nhật số lượng
-                warehouse.setRemainingQuantity((warehouse.getQuantity() + quantity) - warehouse.getSellQuantity());
+//                warehouse.setRemainingQuantity((warehouse.getQuantity() + quantity) - warehouse.getSellQuantity());
 
+                // Cộng dồn số lượng nhập mới vào số lượng còn lại
+                warehouse.setRemainingQuantity(warehouse.getRemainingQuantity() + quantity);
                 // Lấy productId từ ProductDetail
                 warehouse.setProduct(productDetail.getProduct());
-
-
                 warehouseRepository.save(warehouse);
             }
 
@@ -112,10 +113,34 @@ public class PurchaseService implements IPurchaseService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn nhập có id: " + id));
     }
 
+    //    @Override
+//    public Page<Purchase> getAllPurchase(Pageable pageable) {
+//        return purchaseRepository.findAll(pageable);
+//    }
     @Override
-    public Page<Purchase> getAllPurchase(Pageable pageable) {
-        return purchaseRepository.findAll(pageable);
+    public Page<PurchaseResponse> getAllPurchase(String productName, Integer subCategoryId, Pageable pageable) {
+
+        Page<Purchase> purchases;
+
+        // Kết hợp điều kiện tìm kiếm
+        if ((productName != null && !productName.isEmpty()) && subCategoryId != null) {
+            purchases = purchaseRepository
+                    .findByProductDetail_Product_NameContainingIgnoreCaseAndProductDetail_Product_SubCategory_Id(
+                            productName, subCategoryId, pageable);
+        } else if (productName != null && !productName.isEmpty()) {
+            purchases = purchaseRepository
+                    .findByProductDetail_Product_NameContainingIgnoreCase(productName, pageable);
+        } else if (subCategoryId != null) {
+            purchases = purchaseRepository
+                    .findByProductDetail_Product_SubCategory_Id(subCategoryId, pageable);
+        } else {
+            purchases = purchaseRepository.findAll(pageable);
+        }
+
+        // Ánh xạ từng `Purchase` sang `PurchaseResponse`
+        return purchases.map(PurchaseResponse::formPurchase);
     }
+
 
     @Override
     public void deletePurchase(int id) {

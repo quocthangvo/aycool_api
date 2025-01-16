@@ -80,7 +80,14 @@ public class CouponService implements ICouponService {
             // Gán giá trị mô tả vào đối tượng Coupon hoặc xử lý ở đây
         }
 
-        return coupons;
+        // Kiểm tra ngày hiện tại so với ngày kết thúc của coupon
+        for (Coupon coupon : coupons) {
+            if (coupon.getEndDate().isBefore(LocalDate.now())) {
+                coupon.setStatus(false);  // Update trạng thái thành không còn hiệu lực
+            }
+        }
+
+        return couponRepository.saveAll(coupons);  // Lưu các thay đổi
     }
 
 

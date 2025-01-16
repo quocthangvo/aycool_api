@@ -4,9 +4,8 @@ import com.example.shopapp_api.dtos.requests.warehouse.PurchaseDTO;
 import com.example.shopapp_api.dtos.requests.warehouse.PurchaseItemDTO;
 import com.example.shopapp_api.dtos.responses.apiResponse.ApiResponse;
 import com.example.shopapp_api.dtos.responses.apiResponse.MessageResponse;
-import com.example.shopapp_api.dtos.responses.warehouse.PurchaseListResponse;
-import com.example.shopapp_api.dtos.responses.warehouse.WarehouseListResponse;
-import com.example.shopapp_api.dtos.responses.warehouse.WarehouseResponse;
+import com.example.shopapp_api.dtos.responses.warehouse.purchase.PurchaseListResponse;
+import com.example.shopapp_api.dtos.responses.warehouse.purchase.PurchaseResponse;
 import com.example.shopapp_api.entities.warehouse.Purchase;
 import com.example.shopapp_api.services.Impl.warehouse.IPurchaseService;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +35,8 @@ public class PurchaseController {
 
     @GetMapping("")
     public ResponseEntity<?> getALlWarehouse(
+            @RequestParam(value = "productName", required = false) String productName,
+            @RequestParam(value = "subCategoryId", required = false) Integer subCategoryId,
             @RequestParam("page") int page,
             @RequestParam("limit") int limit
     ) {
@@ -43,11 +44,11 @@ public class PurchaseController {
             //tạo PagesRequest từ thông tin page và limit
             PageRequest pageRequest = PageRequest.of(page, limit, Sort.by("dateTime").descending());
 
-            Page<Purchase> purchases = purchaseService.getAllPurchase(pageRequest);
+            Page<PurchaseResponse> purchases = purchaseService.getAllPurchase(productName, subCategoryId, pageRequest);
             //tông số trang
             int totalPages = purchases.getTotalPages();//lấy ra tổng số trang
             long totalRecords = purchases.getTotalElements();
-            List<Purchase> purchaseList = purchases.getContent();//từ productPgae lấy ra ds các product getContent
+            List<PurchaseResponse> purchaseList = purchases.getContent();//từ productPgae lấy ra ds các product getContent
 
             PurchaseListResponse purchaseListResponse = (PurchaseListResponse
                     .builder()

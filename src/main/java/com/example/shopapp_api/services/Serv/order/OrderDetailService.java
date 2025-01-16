@@ -165,6 +165,65 @@ public class OrderDetailService implements IOrderDetailService {
     }
 
     @Override
+//    public List<OrderDetailResponse> getTopSellingProducts() {
+//        // Truy vấn tất cả OrderDetails
+//        List<OrderDetail> orderDetails = orderDetailRepository.findAll();
+//
+//        // Tính tổng số lượng bán cho từng sản phẩm (cộng dồn số lượng)
+//        Map<Integer, Integer> productSales = new HashMap<>();
+//        for (OrderDetail orderDetail : orderDetails) {
+//            int productDetailId = orderDetail.getProductDetail().getId();
+//            productSales.put(productDetailId, productSales.getOrDefault(productDetailId, 0) + orderDetail.getQuantity());
+//        }
+//
+//        // Sắp xếp các sản phẩm theo số lượng bán (giảm dần)
+//        List<Map.Entry<Integer, Integer>> sortedSales = new ArrayList<>(productSales.entrySet());
+//        sortedSales.sort((entry1, entry2) -> entry2.getValue().compareTo(entry1.getValue()));
+//
+//        // Lưu trữ các sản phẩm bán chạy nhất
+//        List<OrderDetailResponse> topSellingProducts = new ArrayList<>();
+//        Set<Integer> processedProductIds = new HashSet<>(); // Lưu các productId đã xử lý
+//
+//        // Lấy ra tối đa 3 sản phẩm bán chạy nhất, mỗi sản phẩm phải có productId khác nhau
+//        for (int i = 0; i < sortedSales.size(); i++) {
+//            int productDetailId = sortedSales.get(i).getKey();
+//            int productId = orderDetails.stream()
+//                    .filter(od -> od.getProductDetail().getId() == productDetailId)
+//                    .map(od -> od.getProductDetail().getProduct().getId())
+//                    .findFirst()
+//                    .orElseThrow(() -> new RuntimeException("Product ID not found for productDetailId: " + productDetailId));
+//
+//            // Kiểm tra xem sản phẩm này đã được thêm vào danh sách chưa
+//            if (!processedProductIds.contains(productId)) {
+//                // Lọc tất cả OrderDetails có cùng productId và chọn sản phẩm bán chạy nhất
+//                List<OrderDetail> productOrderDetails = orderDetails.stream()
+//                        .filter(od -> od.getProductDetail().getProduct().getId() == productId)
+//                        .sorted((od1, od2) -> Integer.compare(od2.getQuantity(), od1.getQuantity()))  // Sắp xếp theo số lượng bán
+//                        .collect(Collectors.toList());
+//
+//                // Lấy tất cả ProductDetails của cùng một sản phẩm
+//                for (OrderDetail orderDetail : productOrderDetails) {
+//                    int currentProductDetailId = orderDetail.getProductDetail().getId();
+//
+//                    // Chuyển đổi OrderDetail sang OrderDetailResponse
+//                    OrderDetailResponse orderDetailResponse = OrderDetailResponse.formOrderDetail(orderDetail);
+//
+//                    // Thêm vào danh sách sản phẩm bán chạy nếu chưa có
+//                    if (!processedProductIds.contains(productId)) {
+//                        topSellingProducts.add(orderDetailResponse);
+//                        processedProductIds.add(productId); // Đánh dấu là đã xử lý productId này
+//                    }
+//
+//                    // Dừng lại khi đủ 3 sản phẩm bán chạy khác nhau
+//                    if (topSellingProducts.size() >= 5) {
+//                        return topSellingProducts;
+//                    }
+//                }
+//            }
+//        }
+//
+//        return topSellingProducts;
+//    }
     public List<OrderDetailResponse> getTopSellingProducts() {
         // Truy vấn tất cả OrderDetails
         List<OrderDetail> orderDetails = orderDetailRepository.findAll();
@@ -184,7 +243,7 @@ public class OrderDetailService implements IOrderDetailService {
         List<OrderDetailResponse> topSellingProducts = new ArrayList<>();
         Set<Integer> processedProductIds = new HashSet<>(); // Lưu các productId đã xử lý
 
-        // Lấy ra tối đa 3 sản phẩm bán chạy nhất, mỗi sản phẩm phải có productId khác nhau
+        // Lấy ra tối đa 5 sản phẩm bán chạy nhất, mỗi sản phẩm phải có productId khác nhau
         for (int i = 0; i < sortedSales.size(); i++) {
             int productDetailId = sortedSales.get(i).getKey();
             int productId = orderDetails.stream()
@@ -214,8 +273,8 @@ public class OrderDetailService implements IOrderDetailService {
                         processedProductIds.add(productId); // Đánh dấu là đã xử lý productId này
                     }
 
-                    // Dừng lại khi đủ 3 sản phẩm bán chạy khác nhau
-                    if (topSellingProducts.size() >= 3) {
+                    // Dừng lại khi đủ 5 sản phẩm bán chạy khác nhau
+                    if (topSellingProducts.size() >= 5) {
                         return topSellingProducts;
                     }
                 }
@@ -264,6 +323,7 @@ public class OrderDetailService implements IOrderDetailService {
     }
 
 
+    //top sp bán chậm
     @Override
     public List<OrderDetailResponse> getLowSellingProducts() {
         // Truy vấn tất cả OrderDetails

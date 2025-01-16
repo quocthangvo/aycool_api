@@ -109,51 +109,92 @@ public class PriceController {
         }
     }
 
+//    @GetMapping("")
+//    public ResponseEntity<ApiResponse<?>> getAllPrices(
+//            @RequestParam("page") int page,
+//            @RequestParam("limit") int limit,
+//            @RequestParam(value = "sortOrder", defaultValue = "") String sortOrder
+//    ) {
+//        try {
+//            // Điều chỉnh sắp xếp theo yêu cầu của người dùng
+////            Sort sort = sortOrder.equals("asc") ?
+////                    Sort.by(Sort.Order.asc("sellingPrice")) :
+////                    Sort.by(Sort.Order.desc("sellingPrice"));
+//            Sort sort;
+//
+//            // Nếu sortOrder không có giá trị, sắp xếp theo createdAt mặc định
+//            if (sortOrder.isEmpty()) {
+//                sort = Sort.by(Sort.Order.desc("createdAt"));  // Sort by startDate in descending order
+//            } else if (sortOrder.equals("asc")) {
+//                sort = Sort.by(Sort.Order.asc("sellingPrice"));
+//            } else {
+//                sort = Sort.by(Sort.Order.desc("sellingPrice"));
+//            }
+//
+//
+//            PageRequest pageRequest = PageRequest.of(page, limit, sort);
+//
+//            // Lấy dữ liệu phân trang từ service
+//            Page<PriceResponse> pricePage = priceService.getAllPrices(pageRequest);
+//
+//            // Tính toán các thông tin phân trang
+//            int totalPages = pricePage.getTotalPages();    // Tổng số trang
+//            long totalRecords = pricePage.getTotalElements(); // Tổng số bản ghi
+//            List<PriceResponse> priceList = pricePage.getContent(); // Danh sách giá
+//
+//            // Tạo PriceListResponse để trả về
+//            PriceListResponse priceListResponse = PriceListResponse.builder()
+//                    .priceResponseList(priceList)
+//                    .totalPages(totalPages)
+//                    .totalRecords(totalRecords)
+//                    .build();
+//
+//            return ResponseEntity.ok(new ApiResponse<>("Thành công", priceListResponse));
+//
+//        } catch (Exception e) {
+//            return ResponseEntity.badRequest().body(new ApiResponse<>("Lỗi: " + e.getMessage(), null));
+//        }
+//    }
+
+
     @GetMapping("")
-    public ResponseEntity<ApiResponse<?>> getAllPrices(
+    public ResponseEntity<ApiResponse<PriceListResponse>> getAllPrices(
             @RequestParam("page") int page,
             @RequestParam("limit") int limit,
-            @RequestParam(value = "sortOrder", defaultValue = "") String sortOrder
-    ) {
-        try {
-            // Điều chỉnh sắp xếp theo yêu cầu của người dùng
-//            Sort sort = sortOrder.equals("asc") ?
-//                    Sort.by(Sort.Order.asc("sellingPrice")) :
-//                    Sort.by(Sort.Order.desc("sellingPrice"));
-            Sort sort;
+            @RequestParam(required = false) String sort,
+            @RequestParam(value = "productDetailName", required = false) String productDetailName) {
 
-            // Nếu sortOrder không có giá trị, sắp xếp theo createdAt mặc định
-            if (sortOrder.isEmpty()) {
-                sort = Sort.by(Sort.Order.desc("createdAt"));  // Sort by startDate in descending order
-            } else if (sortOrder.equals("asc")) {
-                sort = Sort.by(Sort.Order.asc("sellingPrice"));
-            } else {
-                sort = Sort.by(Sort.Order.desc("sellingPrice"));
-            }
+        PageRequest pageRequest;
 
-
-            PageRequest pageRequest = PageRequest.of(page, limit, sort);
-
-            // Lấy dữ liệu phân trang từ service
-            Page<PriceResponse> pricePage = priceService.getAllPrices(pageRequest);
-
-            // Tính toán các thông tin phân trang
-            int totalPages = pricePage.getTotalPages();    // Tổng số trang
-            long totalRecords = pricePage.getTotalElements(); // Tổng số bản ghi
-            List<PriceResponse> priceList = pricePage.getContent(); // Danh sách giá
-
-            // Tạo PriceListResponse để trả về
-            PriceListResponse priceListResponse = PriceListResponse.builder()
-                    .priceResponseList(priceList)
-                    .totalPages(totalPages)
-                    .totalRecords(totalRecords)
-                    .build();
-
-            return ResponseEntity.ok(new ApiResponse<>("Thành công", priceListResponse));
-
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(new ApiResponse<>("Lỗi: " + e.getMessage(), null));
+        if (sort != null) {
+            Sort.Direction sortDirection = sort.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+            pageRequest = PageRequest.of(page, limit, Sort.by(sortDirection, "sellingPrice"));
+        } else {
+            // Sắp xếp theo createdAt mới nhất khi sort không được cung cấp
+            pageRequest = PageRequest.of(page, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
         }
+
+        Page<PriceResponse> pricePage;
+
+        if (productDetailName != null && !productDetailName.isEmpty()) {
+            pricePage = priceService.findPricesByProductDetailNameContaining(pageRequest, productDetailName);
+        } else {
+            pricePage = priceService.getAllPrices(pageRequest);  // Trả về tất cả sản phẩm nếu không có điều kiện tìm kiếm
+        }
+
+        // Tính toán các thông tin phân trang
+        int totalPages = pricePage.getTotalPages();    // Tổng số trang
+        long totalRecords = pricePage.getTotalElements(); // Tổng số bản ghi
+        List<PriceResponse> priceList = pricePage.getContent(); // Danh sách giá
+
+        // Tạo PriceListResponse để trả về
+        PriceListResponse priceListResponse = PriceListResponse.builder()
+                .priceResponseList(priceList)
+                .totalPages(totalPages)
+                .totalRecords(totalRecords)
+                .build();
+
+        return ResponseEntity.ok(new ApiResponse<>("Thành công", priceListResponse));
     }
 
 

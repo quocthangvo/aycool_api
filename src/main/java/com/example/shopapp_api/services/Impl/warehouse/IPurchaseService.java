@@ -4,6 +4,7 @@ import com.example.shopapp_api.dtos.requests.warehouse.PurchaseDTO;
 import com.example.shopapp_api.dtos.requests.warehouse.PurchaseItemDTO;
 import com.example.shopapp_api.dtos.requests.warehouse.WarehouseDTO;
 import com.example.shopapp_api.dtos.responses.warehouse.WarehouseResponse;
+import com.example.shopapp_api.dtos.responses.warehouse.purchase.PurchaseResponse;
 import com.example.shopapp_api.entities.warehouse.Purchase;
 import com.example.shopapp_api.entities.warehouse.Warehouse;
 import com.example.shopapp_api.exceptions.DataNotFoundException;
@@ -17,7 +18,9 @@ public interface IPurchaseService {
 
     Purchase getPurchaseById(int id);
 
-    Page<Purchase> getAllPurchase(Pageable pageable);
+//    Page<Purchase> getAllPurchase(Pageable pageable);
+
+    Page<PurchaseResponse> getAllPurchase(String productName, Integer subCategoryId, Pageable pageable);
 
     void deletePurchase(int id);
 

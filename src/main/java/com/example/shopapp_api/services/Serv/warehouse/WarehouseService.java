@@ -13,9 +13,11 @@ import com.example.shopapp_api.repositories.warehouse.WarehouseRepository;
 import com.example.shopapp_api.services.Impl.warehouse.IWarehouseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -37,24 +39,232 @@ public class WarehouseService implements IWarehouseService {
         return warehouseRepository.findAll(pageable).map(WarehouseResponse::formWarehouse);
     }
 
+    //get all sp trong data admin
     @Override
-    public List<WarehouseGroupResponse> getGroupedWarehouse() {
-        List<Object[]> groupedData = warehouseRepository.findGroupedWarehouse();
+//    public Page<WarehouseResponse> searchWarehousesBySkuName(String skuName, Pageable pageable) {
+//        return warehouseRepository.findByProductDetailSkuName(skuName, pageable)
+//                .map(WarehouseResponse::formWarehouse);
+//    }
 
-        return groupedData.stream().map(data -> {
-            Product product = (Product) data[0]; // Thông tin sản phẩm
-            Long totalQuantity = (Long) data[1]; // Tổng số lượng
-            Double averagePrice = (Double) data[2]; // Giá trung bình
-
-            // Tạo WarehouseGroupResponse
-            WarehouseGroupResponse response = WarehouseGroupResponse.builder()
-                    .productId(ProductResponse.formProduct(product))
-                    .build();
-            response.setCreatedAt(product.getCreatedAt());
-            response.setUpdatedAt(product.getUpdatedAt());
-            return response;
-        }).collect(Collectors.toList());
+    public Page<WarehouseResponse> searchWarehousesBySkuNameAndSubCategory(String skuName, Integer subCategoryId, Integer materialId, Pageable pageable) {
+        return warehouseRepository.findByProductDetailSkuNameAndSubCategoryIdAndMaterial(skuName, subCategoryId, materialId, pageable)
+                .map(WarehouseResponse::formWarehouse);
     }
+
+
+    //all kho chung 1 id product
+//    @Override
+//    public Page<WarehouseGroupResponse> getGroupedWarehouse(Pageable pageable) {
+//        List<Object[]> groupedData = warehouseRepository.findGroupedWarehouse();
+//
+//        List<WarehouseGroupResponse> responses = groupedData.stream().map(data -> {
+//                    Product product = (Product) data[0]; // Thông tin sản phẩm
+//                    Long totalQuantity = (Long) data[1]; // Tổng số lượng
+//                    Double averagePrice = (Double) data[2]; // Giá trung bình
+//
+//                    // Tạo WarehouseGroupResponse
+//                    WarehouseGroupResponse response = WarehouseGroupResponse.builder()
+//                            .productId(ProductResponse.formProduct(product))
+//                            .build();
+//                    if (response == null || response.getProductId().getProductDetails().isEmpty() ||
+//                            response.getProductId().getProductDetails().stream().allMatch(pd -> pd.getPrices().isEmpty())) {
+//                        return null;
+//                    }
+//
+//                    response.setCreatedAt(product.getCreatedAt());
+//                    response.setUpdatedAt(product.getUpdatedAt());
+//                    return response;
+//                }).filter(Objects::nonNull)
+//                .collect(Collectors.toList());
+//
+//        return new PageImpl<>(responses, pageable, responses.size());
+//    }
+//    @Override
+//    public Page<WarehouseGroupResponse> getGroupedWarehouse(Pageable pageable, String searchTerm) {
+//        List<Object[]> groupedData;
+//
+//        if (searchTerm != null && !searchTerm.isEmpty()) {
+//            groupedData = warehouseRepository.findGroupedWarehouseByName(searchTerm);
+//        } else {
+//            groupedData = warehouseRepository.findGroupedWarehouse();
+//        }
+//
+//        List<WarehouseGroupResponse> responses = groupedData.stream().map(data -> {
+//                    Product product = (Product) data[0]; // Thông tin sản phẩm
+//                    Long totalQuantity = (Long) data[1]; // Tổng số lượng
+//                    Double averagePrice = (Double) data[2]; // Giá trung bình
+//
+//                    // Tạo WarehouseGroupResponse
+//                    WarehouseGroupResponse response = WarehouseGroupResponse.builder()
+//                            .productId(ProductResponse.formProduct(product))
+//                            .build();
+//                    if (response == null || response.getProductId().getProductDetails().isEmpty() ||
+//                            response.getProductId().getProductDetails().stream().allMatch(pd -> pd.getPrices().isEmpty())) {
+//                        return null;
+//                    }
+//
+//                    response.setCreatedAt(product.getCreatedAt());
+//                    response.setUpdatedAt(product.getUpdatedAt());
+//                    return response;
+//                }).filter(Objects::nonNull)
+//                .collect(Collectors.toList());
+//
+//        return new PageImpl<>(responses, pageable, responses.size());
+//    }
+
+    // get all product có search user
+    @Override
+//    public Page<WarehouseGroupResponse> getGroupedWarehouse(Pageable pageable,
+//                                                            String searchTerm, Integer subCategoryId) {
+//        Page<Object[]> groupedData;
+//
+//
+//        if (searchTerm != null && !searchTerm.trim().isEmpty()) {
+//            groupedData = warehouseRepository
+//                    .findGroupedWarehouseByNameAndSubcategory(pageable, searchTerm.trim(), subCategoryId);
+//        } else if (subCategoryId != null) {
+//            groupedData = warehouseRepository
+//                    .findGroupedWarehouseByNameAndSubcategory(pageable, null, subCategoryId);
+//        } else {
+//            groupedData = warehouseRepository
+//                    .findGroupedWarehouseByNameAndSubcategory(pageable, null, null);
+//        }
+//
+//        List<WarehouseGroupResponse> responses = groupedData.stream().map(data -> {
+//                    Product product = (Product) data[0]; // Thông tin sản phẩm
+//
+//
+//                    // Tạo WarehouseGroupResponse
+//                    WarehouseGroupResponse response = WarehouseGroupResponse.builder()
+//                            .productId(ProductResponse.formProduct(product))
+//                            .build();
+//                    //sp không có giá  ẩn sp di
+//                    if (response == null || response.getProductId().getProductDetails().isEmpty() ||
+//                            response.getProductId().getProductDetails().stream().allMatch(pd -> pd.getPrices().isEmpty())) {
+//                        return null;
+//                    }
+//
+//                    response.setCreatedAt(product.getCreatedAt());
+//                    response.setUpdatedAt(product.getUpdatedAt());
+//                    return response;
+//                }).filter(Objects::nonNull)
+//                .collect(Collectors.toList());
+//
+//        return new PageImpl<>(responses, pageable, responses.size());
+//    }
+
+    public Page<WarehouseGroupResponse> getGroupedWarehouse(Pageable pageable,
+                                                            String searchTerm, Integer subCategoryId) {
+        Page<Object[]> groupedData;
+
+        if (searchTerm != null && !searchTerm.trim().isEmpty()) {
+            groupedData = warehouseRepository
+                    .findGroupedWarehouseByNameAndSubcategory(pageable, searchTerm.trim(), subCategoryId);
+        } else if (subCategoryId != null) {
+            groupedData = warehouseRepository
+                    .findGroupedWarehouseByNameAndSubcategory(pageable, null, subCategoryId);
+        } else {
+            groupedData = warehouseRepository
+                    .findGroupedWarehouseByNameAndSubcategory(pageable, null, null);
+        }
+
+        List<WarehouseGroupResponse> responses = groupedData.stream().map(data -> {
+                    Product product = (Product) data[0]; // Thông tin sản phẩm
+
+
+                    // Tạo WarehouseGroupResponse
+                    WarehouseGroupResponse response = WarehouseGroupResponse.builder()
+                            .productId(ProductResponse.formProduct(product)) // Lấy productId từ ProductResponse
+
+                            .build();
+
+                    // Ẩn sản phẩm nếu không có giá
+                    if (response == null || response.getProductId().getProductDetails().isEmpty() ||
+                            response.getProductId().getProductDetails().stream().allMatch(pd -> pd.getPrices().isEmpty())) {
+                        return null;
+                    }
+
+                    response.setCreatedAt(product.getCreatedAt());
+                    response.setUpdatedAt(product.getUpdatedAt());
+
+                    return response;
+                }).filter(Objects::nonNull)
+//                .sorted(Comparator.comparing(WarehouseGroupResponse::getCreatedAt).reversed())  // Sắp xếp theo createdAt mới nhất
+                .collect(Collectors.toList());
+        responses = responses.stream()
+                .sorted(Comparator.comparing(WarehouseGroupResponse::getCreatedAt).reversed())  // Sắp xếp theo createdAt mới nhất
+                .collect(Collectors.toList());
+
+
+        return new PageImpl<>(responses, pageable, responses.size());
+    }
+
+
+    //all kho theo sub category
+//    @Override
+//    public List<WarehouseGroupResponse> getGroupedWarehouse(int subCategoryId) {
+//
+//        List<Object[]> groupedData = warehouseRepository.findGroupedWarehouseBySubCategory(subCategoryId);
+//
+//        return groupedData.stream().map(data -> {
+//                    Product product = (Product) data[0]; // Thông tin sản phẩm
+//                    Long totalQuantity = (Long) data[1]; // Tổng số lượng
+//                    Double averagePrice = (Double) data[2]; // Giá trung bình
+//
+//                    // Tạo WarehouseGroupResponse
+//                    WarehouseGroupResponse response = WarehouseGroupResponse.builder()
+//                            .productId(ProductResponse.formProduct(product))
+//                            .build();
+//
+//                    if (response == null || response.getProductId().getProductDetails().isEmpty() ||
+//                            response.getProductId().getProductDetails().stream().allMatch(pd -> pd.getPrices().isEmpty())) {
+//                        return null;
+//                    }
+//                    response.setCreatedAt(product.getCreatedAt());
+//                    response.setUpdatedAt(product.getUpdatedAt());
+//                    return response;
+//
+//                })
+//                .filter(Objects::nonNull)
+//                .collect(Collectors.toList());
+//    }
+
+    @Override
+    public Page<WarehouseGroupResponse> getGroupedWarehouseByFilter(
+            int subCategoryId,
+            List<Integer> colorIds,
+            List<Integer> sizeIds,
+            Integer materialId,
+            Pageable pageable) {
+
+        Page<Object[]> groupedData = warehouseRepository.findGroupedWarehouseByFilters(
+                subCategoryId,
+                colorIds == null || colorIds.isEmpty() ? null : colorIds,
+                sizeIds == null || sizeIds.isEmpty() ? null : sizeIds,
+                materialId,
+                pageable);
+
+        List<WarehouseGroupResponse> responses = groupedData.stream().map(data -> {
+                    Product product = (Product) data[0]; // Thông tin sản phẩm
+
+                    // Tạo WarehouseGroupResponse
+                    WarehouseGroupResponse response = WarehouseGroupResponse.builder()
+                            .productId(ProductResponse.formProduct(product))
+                            .build();
+                    if (response == null || response.getProductId().getProductDetails().isEmpty() ||
+                            response.getProductId().getProductDetails().stream().allMatch(pd -> pd.getPrices().isEmpty())) {
+                        return null;
+                    }
+
+                    response.setCreatedAt(product.getCreatedAt());
+                    response.setUpdatedAt(product.getUpdatedAt());
+                    return response;
+                }).filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(responses, pageable, responses.size());
+    }
+
 
     // Hàm cập nhật số lượng trong kho
     public void updateWarehouseAfterOrder(Cart cart) {
@@ -73,5 +283,34 @@ public class WarehouseService implements IWarehouseService {
             }
         }
     }
+
+
+    ///get all sp theo category
+    @Override
+    public Page<WarehouseGroupResponse> getGroupedProductsByCategoryId(Pageable pageable, int categoryId) {
+
+        Page<Object[]> groupedData = warehouseRepository.findGroupedWarehouseByCategoryId(pageable, categoryId);
+
+        List<WarehouseGroupResponse> responses = groupedData.stream().map(data -> {
+                    Product product = (Product) data[0]; // Thông tin sản phẩm
+
+                    // Tạo WarehouseGroupResponse
+                    WarehouseGroupResponse response = WarehouseGroupResponse.builder()
+                            .productId(ProductResponse.formProduct(product))
+                            .build();
+                    if (response == null || response.getProductId().getProductDetails().isEmpty() ||
+                            response.getProductId().getProductDetails().stream().allMatch(pd -> pd.getPrices().isEmpty())) {
+                        return null;
+                    }
+
+                    response.setCreatedAt(product.getCreatedAt());
+                    response.setUpdatedAt(product.getUpdatedAt());
+                    return response;
+                }).filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(responses, pageable, responses.size());
+    }
+
 
 }

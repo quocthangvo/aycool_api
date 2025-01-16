@@ -4,6 +4,7 @@ import com.example.shopapp_api.entities.prices.Price;
 import com.example.shopapp_api.entities.products.ProductDetail;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -20,4 +21,10 @@ public interface PriceRepository extends JpaRepository<Price, Integer> {
     List<Price> findAllByOrderByCreatedAtDesc();
 
     Price findFirstByProductDetailIdAndEndDateIsNull(int productDetailId);
+
+    Page<Price> findAll(Pageable pageable);
+
+    Page<Price> findByProductDetail_Product_NameContainingIgnoreCase(Pageable pageable, String productDetailName);
+
+    
 }

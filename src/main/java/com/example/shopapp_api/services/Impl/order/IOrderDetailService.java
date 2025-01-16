@@ -29,4 +29,5 @@ public interface IOrderDetailService {
     OrderDetailResponse getLowSellingProduct(); //sp bán chậm
 
     List<OrderDetailResponse> getLowSellingProducts();
+    
 }

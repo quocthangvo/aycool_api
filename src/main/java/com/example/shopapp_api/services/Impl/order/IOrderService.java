@@ -1,7 +1,6 @@
 package com.example.shopapp_api.services.Impl.order;
 
 import com.example.shopapp_api.dtos.requests.order.OrderDTO;
-import com.example.shopapp_api.dtos.requests.order.OrderStatsDTO;
 import com.example.shopapp_api.dtos.requests.order.OrderStatusDTO;
 import com.example.shopapp_api.dtos.responses.order.OrderResponse;
 import com.example.shopapp_api.dtos.responses.order.StatusResponse;
@@ -12,10 +11,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 public interface IOrderService {
     OrderResponse createOrder(OrderDTO orderDTO) throws DataNotFoundException;
@@ -39,4 +36,15 @@ public interface IOrderService {
     Long getTotalOrdersToday();
 
     Double getTotalPaidOrders();
+
+
+    Float getTotalRevenueByTimeRange(OrderStatus status, LocalDateTime startDate, LocalDateTime endDate);
+
+    List<Float> getTotalRevenueByWeek(OrderStatus status, LocalDateTime startDate, LocalDateTime endDate);
+
+    List<Float> getTotalRevenueByMonth(OrderStatus status, LocalDateTime startDate, LocalDateTime endDate);
+
+    List<Float> getTotalRevenueByQuarter(OrderStatus status, LocalDateTime startDate, LocalDateTime endDate);
+
+    List<Float> getTotalRevenueByYear(OrderStatus status);
 }

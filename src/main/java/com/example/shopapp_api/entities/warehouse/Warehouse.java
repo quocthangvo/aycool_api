@@ -41,11 +41,12 @@ public class Warehouse extends BaseEntity {
 
 
     @ManyToOne
-//    @JsonBackReference
+    @JsonBackReference
     @JoinColumn(name = "ma_chi_tiet_san_pham") // Mối quan hệ nhiều với ProductDetail
     private ProductDetail productDetail;
 
     @ManyToOne
+    @JsonBackReference
     @JoinColumn(name = "ma_san_pham")
     private Product product;
 

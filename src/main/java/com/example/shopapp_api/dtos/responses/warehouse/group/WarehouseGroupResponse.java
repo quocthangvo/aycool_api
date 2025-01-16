@@ -16,6 +16,13 @@ public class WarehouseGroupResponse extends BaseResponse {
     private ProductResponse productId;
 
     public static WarehouseGroupResponse formWarehouseGroup(Warehouse warehouse) {
+        // Kiểm tra nếu không có giá trong productDetails của warehouse
+        boolean hasPrice = warehouse.getProduct().getProductDetails()
+                .stream().anyMatch(pd -> pd.getPrices() != null && !pd.getPrices().isEmpty());
+
+        if (!hasPrice) {
+            return null;  // Không hiển thị nếu không có giá
+        }
         WarehouseGroupResponse group = WarehouseGroupResponse.builder()
                 .productId(ProductResponse.formProduct(warehouse.getProduct()))
                 .build();

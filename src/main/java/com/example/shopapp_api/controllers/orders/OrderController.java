@@ -1,8 +1,8 @@
 package com.example.shopapp_api.controllers.orders;
 
 import com.example.shopapp_api.dtos.requests.order.OrderDTO;
-import com.example.shopapp_api.dtos.requests.order.OrderStatsDTO;
 import com.example.shopapp_api.dtos.requests.order.OrderStatusDTO;
+import com.example.shopapp_api.dtos.requests.order.revenue.RevenueData;
 import com.example.shopapp_api.dtos.responses.apiResponse.ApiResponse;
 import com.example.shopapp_api.dtos.responses.apiResponse.MessageResponse;
 import com.example.shopapp_api.dtos.responses.order.OrderListResponse;
@@ -23,12 +23,10 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 @RestController
 @RequestMapping("${api.prefix}/orders")
@@ -204,9 +202,48 @@ public class OrderController {
         return ResponseEntity.ok(new ApiResponse<>(" thành công", totalOrdersToday));
     }
 
+    //don hàng đã thanh toán
     @GetMapping("/paid-order")
     public ResponseEntity<ApiResponse<Double>> getTotalPaidOrders() {
         Double totalPaidOrders = orderService.getTotalPaidOrders();
         return ResponseEntity.ok(new ApiResponse<>(" thành công", totalPaidOrders));
     }
+
+
+    // API lọc doanh thu theo tuần, tháng, quý, năm
+    @GetMapping("/revenue/{period}")
+    public ResponseEntity<?> getTotalRevenueByPeriod(
+            @PathVariable String period,
+            @RequestParam LocalDateTime startDate,
+            @RequestParam LocalDateTime endDate) {
+
+        List<Float> revenueData;
+        List<String> labels;
+
+        switch (period.toLowerCase()) {
+            case "week":
+                revenueData = orderService.getTotalRevenueByWeek(OrderStatus.DELIVERED, startDate, endDate);
+                labels = Arrays.asList("Tuần 1", "Tuần 2", "Tuần 3", "Tuần 4");
+                break;
+            case "month":
+                revenueData = orderService.getTotalRevenueByMonth(OrderStatus.DELIVERED, startDate, endDate);
+                labels = Arrays.asList("Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
+                        "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12");
+                break;
+            case "quarter":
+                revenueData = orderService.getTotalRevenueByQuarter(OrderStatus.DELIVERED, startDate, endDate);
+                labels = Arrays.asList("Q1", "Q2", "Q3", "Q4");
+                break;
+            case "year":
+                revenueData = orderService.getTotalRevenueByYear(OrderStatus.DELIVERED);
+                labels = Arrays.asList("2023", "2024", "2025", "2026");
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid period type: " + period);
+        }
+
+        RevenueData revenue = new RevenueData(labels, revenueData);
+        return ResponseEntity.ok(new ApiResponse<>("Thành công", revenue));
+    }
+
 }

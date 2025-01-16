@@ -1,6 +1,5 @@
 package com.example.shopapp_api.repositories.order;
 
-import com.example.shopapp_api.dtos.requests.order.OrderStatsDTO;
 import com.example.shopapp_api.entities.orders.Order;
 import com.example.shopapp_api.entities.orders.status.OrderStatus;
 import com.example.shopapp_api.entities.orders.status.PaymentStatus;
@@ -10,7 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -78,6 +76,16 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             "WHERE o.paymentStatus = 'PAID' " +
             "AND FUNCTION('DATE', o.OrderDate) = CURRENT_DATE")
     Double calculateTotalPaidOrdersToday();
+
+
+    // doanh thu theo ngày thang năm
+
+    // Tính doanh thu theo thời gian tuần, tháng, quý, năm
+    @Query("SELECT SUM(o.totalMoney) FROM Order o WHERE o.status = :status AND o.deliveredDate BETWEEN :startDate AND :endDate")
+    Float getTotalRevenueByTimeRange(
+            @Param("status") OrderStatus status,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 
 
 }

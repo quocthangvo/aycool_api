@@ -25,4 +25,7 @@ public interface IPriceService {
     Page<PriceResponse> getAllPrices(PageRequest pageRequest);
 
 //    List<Price> createPrice(PriceDTO priceDTO) throws DataNotFoundException;
+
+    Page<PriceResponse> findPricesByProductDetailNameContaining(PageRequest pageRequest, String productDetailName);
+
 }

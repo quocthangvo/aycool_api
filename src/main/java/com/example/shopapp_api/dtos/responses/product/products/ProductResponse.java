@@ -49,13 +49,24 @@ public class ProductResponse extends BaseResponse {
     @JsonProperty("category")
     private String category;
 
+    @JsonProperty("category_id")
+    private int categoryId;
+
     //nếu không mapping thì trả về theo kiểu thủ công tạo formProduct
     public static ProductResponse formProduct(Product product) {
+//        // Kiểm tra xem có giá trong các productDetails hay không
+//        boolean hasPrice = product.getProductDetails().stream().anyMatch(pd -> pd.getPrices() != null && !pd.getPrices().isEmpty());
+//
+//        if (!hasPrice) {
+//            return null;  // Không hiển thị sản phẩm nếu không có giá
+//        }
+//
         ProductResponse productResponse = ProductResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
                 .sku(product.getSku())
                 .description(product.getDescription())
+                .categoryId(product.getSubCategory().getCategory().getId())
                 .category(product.getSubCategory().getCategory().getName())
                 .subCategoryId(product.getSubCategory().getId())
                 .subCategoryName(product.getSubCategory().getName())

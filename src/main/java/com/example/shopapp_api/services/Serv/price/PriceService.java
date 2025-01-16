@@ -31,6 +31,59 @@ public class PriceService implements IPriceService {
     private final ProductDetailRepository productDetailRepository;
 
     @Override
+//    public Price createPrice(PriceDTO priceDTO) throws DataNotFoundException {
+//        ProductDetail existingProductDetail = productDetailRepository
+//                .findById(priceDTO.getProductDetailId())
+//                .orElseThrow(() -> new DataNotFoundException(
+//                        "Không tìm thấy sản phẩm với id: " + priceDTO.getProductDetailId()));
+//
+//        // Kiểm tra ngày bắt đầu không nhỏ hơn hôm nay
+//        if (priceDTO.getStartDate().isBefore(LocalDate.now())) {
+//            throw new DataNotFoundException("Ngày bắt đầu không thể nhỏ hơn hôm nay.");
+//        }
+//
+//        // Kiểm tra ngày kết thúc phải lớn hơn và khác ngày bắt đầu, nếu có
+//        if (priceDTO.getEndDate() != null && !priceDTO.getEndDate().isAfter(priceDTO.getStartDate())) {
+//            throw new DataNotFoundException("Ngày kết thúc phải lớn hơn và khác ngày bắt đầu.");
+//        }
+//
+//        // Tính giá khuyến mãi dựa trên tỷ lệ phần trăm nếu có
+//        Float promotionPrice = priceDTO.getPromotionPrice();
+//        if (promotionPrice != null && promotionPrice < 0) {
+//            throw new IllegalArgumentException("Không thể nhập % là âm.");
+//        }
+//        Float calculatedPromotionPrice = null;
+//        if (promotionPrice != null && promotionPrice >= 0) {
+//            // Tính giá khuyến mãi bằng cách áp dụng phần trăm khuyến mãi
+//            calculatedPromotionPrice = priceDTO.getSellingPrice() * (1 - promotionPrice / 100);
+//        }
+//
+//        // Kiểm tra và cập nhật giá cũ (nếu có) để giá này hết hiệu lực
+//        if (priceDTO.getEndDate() == null) {
+//            // Nếu không có ngày kết thúc, không làm gì cả
+//        } else {
+//            // Nếu có ngày kết thúc, cần cập nhật giá cũ nếu giá này vẫn chưa hết hạn
+//            Price existingPrice = priceRepository
+//                    .findFirstByProductDetailIdAndEndDateIsNull(existingProductDetail.getId());
+//
+//            if (existingPrice != null) {
+//                // Cập nhật giá cũ để giá này hết hiệu lực
+//                existingPrice.setEndDate(LocalDate.now());
+//                priceRepository.save(existingPrice); // Cập nhật giá cũ
+//            }
+//        }
+//
+//
+//        Price createPrice = Price.builder()
+//                .sellingPrice(priceDTO.getSellingPrice())
+//                .promotionPrice(calculatedPromotionPrice)
+//                .startDate(priceDTO.getStartDate())
+//                .endDate(priceDTO.getEndDate())
+//                .productDetail(existingProductDetail)
+//                .build();
+//
+//        return priceRepository.save(createPrice);
+//    }
     public Price createPrice(PriceDTO priceDTO) throws DataNotFoundException {
         ProductDetail existingProductDetail = productDetailRepository
                 .findById(priceDTO.getProductDetailId())
@@ -38,12 +91,15 @@ public class PriceService implements IPriceService {
                         "Không tìm thấy sản phẩm với id: " + priceDTO.getProductDetailId()));
 
         // Kiểm tra ngày bắt đầu không nhỏ hơn hôm nay
-        if (priceDTO.getStartDate().isBefore(LocalDate.now())) {
+        if (priceDTO.getStartDate() != null && priceDTO.getStartDate().isBefore(LocalDate.now())) {
             throw new DataNotFoundException("Ngày bắt đầu không thể nhỏ hơn hôm nay.");
         }
 
+        // Gán ngày bắt đầu thành ngày hôm nay nếu không có ngày bắt đầu được chọn
+        LocalDate startDate = priceDTO.getStartDate() != null ? priceDTO.getStartDate() : LocalDate.now();
+
         // Kiểm tra ngày kết thúc phải lớn hơn và khác ngày bắt đầu, nếu có
-        if (priceDTO.getEndDate() != null && !priceDTO.getEndDate().isAfter(priceDTO.getStartDate())) {
+        if (priceDTO.getEndDate() != null && !priceDTO.getEndDate().isAfter(startDate)) {
             throw new DataNotFoundException("Ngày kết thúc phải lớn hơn và khác ngày bắt đầu.");
         }
 
@@ -73,11 +129,10 @@ public class PriceService implements IPriceService {
             }
         }
 
-
         Price createPrice = Price.builder()
                 .sellingPrice(priceDTO.getSellingPrice())
                 .promotionPrice(calculatedPromotionPrice)
-                .startDate(priceDTO.getStartDate())
+                .startDate(startDate)  // Gán ngày bắt đầu là hôm nay nếu không có giá trị startDate
                 .endDate(priceDTO.getEndDate())
                 .productDetail(existingProductDetail)
                 .build();
@@ -85,53 +140,63 @@ public class PriceService implements IPriceService {
         return priceRepository.save(createPrice);
     }
 
+
     @Override
     public Price getPriceById(int id) throws DataNotFoundException {
         return priceRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException("Không tìm thấy giá với id: " + id));
     }
 
+//    @Override
+//    public Page<PriceResponse> getAllPrices(PageRequest pageRequest) {
+//        List<Price> prices = priceRepository.findAllByOrderByCreatedAtDesc(); // Lấy tất cả giá sắp xếp theo ngày bắt đầu
+//
+//        // Lọc ra giá mới nhất cho mỗi productDetailId
+//        Map<Integer, Price> latestPrices = new HashMap<>();
+//        for (Price price : prices) {
+//            int productDetailId = price.getProductDetail().getId();
+//            if (!latestPrices.containsKey(productDetailId)) {
+//                latestPrices.put(productDetailId, price);
+//            }
+//        }
+//
+//        // Chuyển đổi thành danh sách PriceResponse
+//        List<PriceResponse> priceResponses = latestPrices.values().stream()
+//                .map(PriceResponse::formPrice)
+//                .collect(Collectors.toList());
+//
+////        // Sắp xếp danh sách theo giá
+//        if (pageRequest.getSort().getOrderFor("sellingPrice") != null) {
+//            priceResponses.sort((p1, p2) -> {
+//                if (pageRequest.getSort().getOrderFor("sellingPrice").getDirection() == Sort.Direction.ASC) {
+//                    return Double.compare(p1.getSellingPrice(), p2.getSellingPrice()); // Tăng dần
+//                } else {
+//                    return Double.compare(p2.getSellingPrice(), p1.getSellingPrice()); // Giảm dần
+//                }
+//            });
+//        }
+//
+//        // Tính toán phân trang (cắt dữ liệu theo pageRequest)
+//        int start = Math.min((int) pageRequest.getOffset(), priceResponses.size());
+//        int end = Math.min((start + pageRequest.getPageSize()), priceResponses.size());
+//        List<PriceResponse> pageContent = priceResponses.subList(start, end);
+//        return new PageImpl<>(pageContent, pageRequest, priceResponses.size());
+//    }
+
     @Override
     public Page<PriceResponse> getAllPrices(PageRequest pageRequest) {
-        List<Price> prices = priceRepository.findAllByOrderByCreatedAtDesc(); // Lấy tất cả giá sắp xếp theo ngày bắt đầu
+        return priceRepository.findAll(pageRequest)
+                .map(PriceResponse::formPrice);
+    }
 
-        // Lọc ra giá mới nhất cho mỗi productDetailId
-        Map<Integer, Price> latestPrices = new HashMap<>();
-        for (Price price : prices) {
-            int productDetailId = price.getProductDetail().getId();
-            if (!latestPrices.containsKey(productDetailId)) {
-                latestPrices.put(productDetailId, price);
-            }
+    public Page<PriceResponse> findPricesByProductDetailNameContaining(PageRequest pageRequest, String productDetailName) {
+        if (productDetailName != null && !productDetailName.isEmpty()) {
+            return priceRepository.findByProductDetail_Product_NameContainingIgnoreCase(pageRequest, productDetailName)
+                    .map(PriceResponse::formPrice);
+        } else {
+            return priceRepository.findAll(pageRequest)
+                    .map(PriceResponse::formPrice);
         }
-
-        // Chuyển đổi thành danh sách PriceResponse
-        List<PriceResponse> priceResponses = latestPrices.values().stream()
-                .map(PriceResponse::formPrice)
-                .collect(Collectors.toList());
-
-//        // Sắp xếp danh sách theo giá
-//        priceResponses.sort((p1, p2) -> {
-//            if (pageRequest.getSort().getOrderFor("sellingPrice").getDirection() == Sort.Direction.ASC) {
-//                return Double.compare(p1.getSellingPrice(), p2.getSellingPrice()); // Tăng dần
-//            } else {
-//                return Double.compare(p2.getSellingPrice(), p1.getSellingPrice()); // Giảm dần
-//            }
-//        });
-        if (pageRequest.getSort().getOrderFor("sellingPrice") != null) {
-            priceResponses.sort((p1, p2) -> {
-                if (pageRequest.getSort().getOrderFor("sellingPrice").getDirection() == Sort.Direction.ASC) {
-                    return Double.compare(p1.getSellingPrice(), p2.getSellingPrice()); // Tăng dần
-                } else {
-                    return Double.compare(p2.getSellingPrice(), p1.getSellingPrice()); // Giảm dần
-                }
-            });
-        }
-
-        // Tính toán phân trang (cắt dữ liệu theo pageRequest)
-        int start = Math.min((int) pageRequest.getOffset(), priceResponses.size());
-        int end = Math.min((start + pageRequest.getPageSize()), priceResponses.size());
-        List<PriceResponse> pageContent = priceResponses.subList(start, end);
-        return new PageImpl<>(pageContent, pageRequest, priceResponses.size());
     }
 
 
@@ -246,5 +311,6 @@ public class PriceService implements IPriceService {
 //
 //        return createdPrices; // Trả về danh sách các giá vừa tạo
 //    }
+
 
 }

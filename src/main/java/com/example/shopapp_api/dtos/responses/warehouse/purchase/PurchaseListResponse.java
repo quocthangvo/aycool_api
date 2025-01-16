@@ -1,4 +1,4 @@
-package com.example.shopapp_api.dtos.responses.warehouse;
+package com.example.shopapp_api.dtos.responses.warehouse.purchase;
 
 import com.example.shopapp_api.entities.warehouse.Purchase;
 import lombok.AllArgsConstructor;
@@ -13,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class PurchaseListResponse {
-    private List<Purchase> purchaseList; // truyền list
+    private List<PurchaseResponse> purchaseList; // truyền list
     private int totalPages;
     private long totalRecords;
 }

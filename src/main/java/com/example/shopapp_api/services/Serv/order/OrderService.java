@@ -1,14 +1,12 @@
 package com.example.shopapp_api.services.Serv.order;
 
 import com.example.shopapp_api.dtos.requests.order.OrderDTO;
-import com.example.shopapp_api.dtos.requests.order.OrderStatsDTO;
 import com.example.shopapp_api.dtos.requests.order.OrderStatusDTO;
 import com.example.shopapp_api.dtos.responses.order.OrderResponse;
 import com.example.shopapp_api.dtos.responses.order.StatusResponse;
 import com.example.shopapp_api.entities.cart.Cart;
 import com.example.shopapp_api.entities.cart.CartItem;
 import com.example.shopapp_api.entities.coupon.Coupon;
-import com.example.shopapp_api.entities.coupon.CouponUsage;
 import com.example.shopapp_api.entities.coupon.DiscountType;
 import com.example.shopapp_api.entities.orders.*;
 import com.example.shopapp_api.entities.orders.status.OrderStatus;
@@ -16,7 +14,6 @@ import com.example.shopapp_api.entities.orders.status.PaymentMethod;
 import com.example.shopapp_api.entities.orders.status.PaymentStatus;
 import com.example.shopapp_api.entities.prices.Price;
 import com.example.shopapp_api.entities.products.ProductDetail;
-import com.example.shopapp_api.entities.users.User;
 import com.example.shopapp_api.entities.warehouse.Warehouse;
 import com.example.shopapp_api.exceptions.DataNotFoundException;
 import com.example.shopapp_api.repositories.cart.CartRepository;
@@ -35,16 +32,12 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -269,7 +262,7 @@ public class OrderService implements IOrderService {
 //    }
 
     @Override
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     public StatusResponse updateOrder(int orderId, OrderStatusDTO orderStatusDTO) throws DataNotFoundException {
         // Tìm kiếm đơn hàng theo orderId
         Order existingOrder = orderRepository.findById(orderId)
@@ -608,7 +601,7 @@ public class OrderService implements IOrderService {
 
         // Cộng tổng
         totalMoney += totalMoneyAfterDiscount;
-        
+
 
         // Định dạng tổng doanh thu dưới dạng chuỗi
 //        DecimalFormat decimalFormat = new DecimalFormat("#,###.##");
@@ -626,11 +619,71 @@ public class OrderService implements IOrderService {
         return orderRepository.countTodayOrders();
     }
 
-
+    //don hang thanh toan
     @Override
     public Double getTotalPaidOrders() {
         return orderRepository.calculateTotalPaidOrdersToday();
     }
+
+    // lọc doanh thu
+
+    @Override
+    // Tính doanh thu theo thời gian tuần, tháng, quý, năm
+    public Float getTotalRevenueByTimeRange(OrderStatus status, LocalDateTime startDate, LocalDateTime endDate) {
+        return orderRepository.getTotalRevenueByTimeRange(status, startDate, endDate);
+    }
+
+    @Override
+    public List<Float> getTotalRevenueByWeek(OrderStatus status, LocalDateTime startDate, LocalDateTime endDate) {
+        List<Float> weeklyRevenue = new ArrayList<>();
+        for (int i = 0; i < 4; i++) {
+            LocalDateTime weekStart = startDate.plusWeeks(i);
+            LocalDateTime weekEnd = weekStart.plusWeeks(1).minusSeconds(1);
+            Float revenue = orderRepository.getTotalRevenueByTimeRange(status, weekStart, weekEnd);
+            weeklyRevenue.add(revenue != null ? revenue : 0.0f);
+        }
+        return weeklyRevenue;
+    }
+
+    @Override
+    public List<Float> getTotalRevenueByMonth(OrderStatus status, LocalDateTime startDate, LocalDateTime endDate) {
+        List<Float> monthlyRevenue = new ArrayList<>();
+        for (int i = 0; i < 12; i++) {
+            LocalDateTime monthStart = startDate.plusMonths(i);
+            LocalDateTime monthEnd = monthStart.plusMonths(1).minusSeconds(1);
+            Float revenue = orderRepository.getTotalRevenueByTimeRange(status, monthStart, monthEnd);
+            monthlyRevenue.add(revenue != null ? revenue : 0.0f);
+        }
+        return monthlyRevenue;
+    }
+
+    @Override
+    public List<Float> getTotalRevenueByQuarter(OrderStatus status, LocalDateTime startDate, LocalDateTime endDate) {
+        List<Float> quarterlyRevenue = new ArrayList<>();
+        for (int i = 0; i < 4; i++) {
+            LocalDateTime quarterStart = startDate.plusMonths(i * 3);
+            LocalDateTime quarterEnd = quarterStart.plusMonths(3).minusSeconds(1);
+            Float revenue = orderRepository.getTotalRevenueByTimeRange(status, quarterStart, quarterEnd);
+            quarterlyRevenue.add(revenue != null ? revenue : 0.0f);
+        }
+        return quarterlyRevenue;
+    }
+
+    @Override
+    public List<Float> getTotalRevenueByYear(OrderStatus status) {
+        LocalDateTime now = LocalDateTime.now();
+        List<Float> yearlyRevenue = new ArrayList<>();
+        for (int i = 0; i < 4; i++) {
+            LocalDateTime yearStart = now.minusYears(i);  // Lấy năm hiện tại và năm từ 2024 đến 2025
+            LocalDateTime yearEnd = yearStart.plusYears(1).minusSeconds(1);  // Đến cuối năm
+
+            // Lấy dữ liệu doanh thu từ repository
+            Float revenue = orderRepository.getTotalRevenueByTimeRange(status, yearStart, yearEnd);
+            yearlyRevenue.add(revenue != null ? revenue : 0.0f);
+        }
+        return yearlyRevenue;
+    }
+
 
 }
 

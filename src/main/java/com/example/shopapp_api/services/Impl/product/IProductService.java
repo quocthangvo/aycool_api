@@ -47,4 +47,6 @@ public interface IProductService {
     );
 
     Page<ProductResponse> searchProductsByNameAndSubCategory(String name, Integer subCategoryId, Pageable pageable);
+
+
 }
